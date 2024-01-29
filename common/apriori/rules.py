@@ -1,3 +1,4 @@
+import time
 from itertools import chain, combinations
 
 import pandas as pd
@@ -35,7 +36,7 @@ def generate_association_rules(
     rules: list[AssociationRule] = []
     for itemset in frequent_itemsets:
         for subset in generate_subset_combinations(itemset):
-            if support(itemset, transactions) / support(set(subset), transactions) >= minconf:
+            if support(itemset, transactions, None) / support(set(subset), transactions, None) >= minconf:
                 rules.append(
                     dict(
                         antecedent=set(subset),
@@ -46,15 +47,19 @@ def generate_association_rules(
 
 
 def generate_strong_association_rules(
-    transactions: pd.DataFrame | list[set], elements: set | None = None
+    transactions: pd.DataFrame | list[set], elements: set | None = None, sp = None
 ) -> list[AssociationRule]:
     if isinstance(transactions, pd.DataFrame):
-        frequent_itemsets = df_find_frequent_itemsets(transactions)
+        frequent_itemsets = df_find_frequent_itemsets(transactions, consts.SUPPORT_THRESHOLD, sp)
 
     elif isinstance(transactions, list):
-        frequent_itemsets = li_find_frequent_itemsets(elements, transactions)
+        frequent_itemsets = li_find_frequent_itemsets(elements, transactions, consts.SUPPORT_THRESHOLD, sp)
 
     else:
         raise TypeError
 
-    return generate_association_rules(frequent_itemsets, transactions)
+    start = time.perf_counter()
+    rules = generate_association_rules(frequent_itemsets, transactions)
+    end = time.perf_counter()
+    print(f"Generating rules took {end - start} seconds")
+    return rules

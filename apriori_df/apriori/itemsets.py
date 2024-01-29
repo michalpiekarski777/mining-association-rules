@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def find_frequent_itemsets(
-    df: pd.DataFrame, minsup: float = consts.SUPPORT_THRESHOLD
+    df: pd.DataFrame, minsup: float = consts.SUPPORT_THRESHOLD, sp = None
 ) -> list[set]:
     """
     Finds all subsets of elements_universe that meet support threshold
@@ -22,19 +22,20 @@ def find_frequent_itemsets(
     itemsets = [
         {element}
         for element in df.columns
-        if support({element}, df) >= minsup
+        if support({element}, df, sp) >= minsup
     ]
-    logger.info(f"{1} elements frequent itemsets {itemsets}")
+    logger.info(f"{1} elements frequent itemsets {len(itemsets)}")
     frequent_itemsets.extend(itemsets)
     for i in range(2, len(df.columns)):
-        candidates = apriori_gen(itemsets, df, minsup)
+        candidates = apriori_gen(itemsets, df, minsup, sp)
         itemsets = [
             candidate
             for candidate in candidates
-            if support(candidate, df) >= minsup
+            if support(candidate, df, sp) >= minsup
         ]
-        logger.info(f"{i} elements frequent itemsets {itemsets}")
+        logger.info(f"{i} elements frequent itemsets {len(itemsets)}")
         frequent_itemsets.extend(itemsets)
-        if len(itemsets) == len(frequent_itemsets):
+        if not itemsets:
             break
+    logger.info(f"Calculating support took {sp.duration} and was done {sp.supp_calculations} times")
     return frequent_itemsets
