@@ -1,10 +1,12 @@
 import logging
 import time
 from abc import ABCMeta, abstractmethod
+from itertools import chain, combinations
 
 import pandas as pd
 
 from common.utils import consts
+from common.utils.typed_dicts import AssociationRule
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -15,6 +17,12 @@ class RuleGenerator(metaclass=ABCMeta):
         self.start = time.perf_counter()
         self.support_calculations = 0
         self.support_calculations_time = 0.0
+        self.total_duration = 0.0
+
+    def generate_strong_association_rules(
+        self, transactions: pd.DataFrame | list[set], elements: set | None = None
+    ) -> list[AssociationRule]:
+        raise NotImplementedError
 
     @abstractmethod
     def find_frequent_itemsets(
@@ -60,3 +68,44 @@ class RuleGenerator(metaclass=ABCMeta):
             for candidate in candidates
             if self.support(candidate, transactions) >= minsup
         ]
+
+    def _generate_association_rules(
+        self,
+        frequent_itemsets: list[set],
+        transactions: pd.DataFrame | list[set],
+        minconf: float = consts.CONFIDENCE_THRESHOLD,
+    ) -> list[AssociationRule]:
+        """
+        For each frequent itemsts find not empty subsets subLi, so the support of Li divided by support of subLi is
+        greater than minconf, return all association rules in form of lists of dictionaries containing association rules
+        in form of 2 sets (antecedent and consequent)
+        :param frequent_itemsets:
+        :param minconf:
+        :return:
+        """
+        rules: list[AssociationRule] = []
+        for itemset in frequent_itemsets:
+            for subset in self._generate_subset_combinations(itemset):
+                if (
+                    self.support(itemset, transactions)
+                    / self.support(set(subset), transactions)
+                    >= minconf
+                ):
+                    rules.append(
+                        dict(
+                            antecedent=set(subset),
+                            consequent=itemset - set(subset),
+                        )
+                    )
+        return rules
+
+    def _generate_subset_combinations(self, elements: set) -> list[tuple]:
+        """
+        :param elements: set of elements
+        :return: list of not empty subsets of set elements excluding set of length len(elements)
+        """
+        return list(
+            chain.from_iterable(
+                combinations(elements, size) for size in range(1, len(elements))
+            )
+        )

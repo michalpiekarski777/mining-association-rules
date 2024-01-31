@@ -6,6 +6,7 @@ import pandas as pd
 from common.apriori.apriori import RuleGenerator
 from common.utils import consts
 from common.utils.exceptions import EmptyTransactionBaseException
+from common.utils.typed_dicts import AssociationRule
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -25,6 +26,18 @@ class DataFrameRuleGenerator(RuleGenerator):
         self.support_calculations += 1
 
         return len(supported_df) / len(df)
+
+    def generate_strong_association_rules(
+        self, transactions: pd.DataFrame, elements: set | None = None
+    ) -> list[AssociationRule]:
+        start = time.perf_counter()
+        frequent_itemsets = self.find_frequent_itemsets(
+            transactions, consts.SUPPORT_THRESHOLD
+        )
+        rules = self._generate_association_rules(frequent_itemsets, transactions)
+        self.total_duration = time.perf_counter() - start
+
+        return rules
 
     def find_frequent_itemsets(
         self, df: pd.DataFrame, minsup: float = consts.SUPPORT_THRESHOLD
@@ -51,12 +64,5 @@ class DataFrameRuleGenerator(RuleGenerator):
             frequent_itemsets.extend(itemsets)
             if not itemsets:
                 break
-
-        logger.info(
-            f"""
-                Calculating support to retrieve frequent itemsets took {self.support_calculations_time}
-                and was done {self.support_calculations} times
-            """
-        )
 
         return frequent_itemsets
