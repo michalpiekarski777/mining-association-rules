@@ -25,14 +25,6 @@ class RuleGenerator(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def find_frequent_itemsets(
-        self,
-        transactions: pd.DataFrame | list[set],
-        minsup: float = consts.SUPPORT_THRESHOLD,
-    ):
-        raise NotImplementedError
-
-    @abstractmethod
     def support(self, itemset: set, transactions: pd.DataFrame | list[set]) -> float:
         raise NotImplementedError
 

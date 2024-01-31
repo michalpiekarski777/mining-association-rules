@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 from apriori_df.apriori.apriori import DataFrameRuleGenerator
+from apriori_list.apriori.apriori import ListRuleGenerator
 from apriori_list.sources.read_csv import read_transactions
 from config import ROOT_DIR
 
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    runner = sys.argv[1]
+    runner = sys.argv[1] if len(sys.argv) > 1 else "default"
 
     if runner == "df":
         df = pd.read_csv(
@@ -24,7 +25,8 @@ def main():
     else:
         path = Path(ROOT_DIR) / "apriori_list" / "sources" / "groceries.csv"
         elements, transactions = read_transactions(path)
-        # rules = generate_strong_association_rules(transactions, elements)
+        rule_generator = ListRuleGenerator()
+        rules = rule_generator.generate_strong_association_rules(transactions, elements)
 
     logger.info(
         f"Rules generated using {runner} database in {rule_generator.total_duration} seconds"
