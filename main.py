@@ -1,12 +1,13 @@
 import logging
 import sys
+import time
 from pathlib import Path
 
 import pandas as pd
 
 from apriori_df.apriori.apriori import DataFrameRuleGenerator
 from apriori_list.apriori.apriori import ListRuleGenerator
-from apriori_list.sources.read_csv import read_transactions
+from apriori_list.sources.read_csv import read_transactions_shop
 from config import ROOT_DIR
 
 logging.basicConfig(level=logging.DEBUG)
@@ -17,14 +18,14 @@ def main():
     runner = sys.argv[1] if len(sys.argv) > 1 else "default"
 
     if runner == "df":
-        df = pd.read_csv(
-            Path(ROOT_DIR) / "apriori_df" / "sources" / "groceries.csv", index_col=False
-        )
+        start = time.perf_counter()
+        df = pd.read_parquet(Path(ROOT_DIR) / "apriori_df" / "sources" / "shop.parquet")
+        logger.info(f"Reading dataframe took {time.perf_counter() - start}")
         rule_generator = DataFrameRuleGenerator()
         rules = rule_generator.generate_strong_association_rules(df)
     else:
-        path = Path(ROOT_DIR) / "apriori_list" / "sources" / "groceries.csv"
-        elements, transactions = read_transactions(path)
+        path = Path(ROOT_DIR) / "apriori_list" / "sources" / "shop.csv"
+        elements, transactions = read_transactions_shop(path)
         rule_generator = ListRuleGenerator()
         rules = rule_generator.generate_strong_association_rules(transactions, elements)
 

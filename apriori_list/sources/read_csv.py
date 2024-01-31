@@ -9,6 +9,14 @@ def read_transactions(path):
     return elements, transactions
 
 
+def read_transactions_shop(path):
+    df = pd.read_csv(path, sep=";")
+    elements = set(df["Itemname"].unique())
+    groupby_agg = df.groupby(["BillNo"])[["Itemname"]].agg(set)
+    transactions = groupby_agg["Itemname"].to_list()
+    return elements, transactions
+
+
 def read_transactions_df(path):
     df = pd.read_csv(path)
     elements = set(df["itemDescription"].unique())

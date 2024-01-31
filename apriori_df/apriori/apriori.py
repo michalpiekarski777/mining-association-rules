@@ -21,11 +21,14 @@ class DataFrameRuleGenerator(RuleGenerator):
             raise EmptyTransactionBaseException
 
         start = time.perf_counter()
-        supported_df = df[df[list(itemset)].eq(1).all(axis=1)]
+        if len(itemset) > 1:
+            supported_transactions_count = len(df[df[list(itemset)].eq(1).all(axis=1)])
+        else:
+            supported_transactions_count = df[list(itemset)[0]].value_counts().iloc[-1]
         self.support_calculations_time += time.perf_counter() - start
         self.support_calculations += 1
 
-        return len(supported_df) / len(df)
+        return supported_transactions_count / len(df)
 
     def generate_strong_association_rules(
         self, transactions: pd.DataFrame, elements: set | None = None
@@ -48,11 +51,16 @@ class DataFrameRuleGenerator(RuleGenerator):
         :return:
         """
         frequent_itemsets = []
+        start = time.perf_counter()
         itemsets = [
             {element} for element in df.columns if self.support({element}, df) >= minsup
         ]
+        logger.info(
+            f"Finding frequent itemsets of length 1 took {time.perf_counter() - start}"
+        )
         logger.info(f"{1} elements frequent itemsets {len(itemsets)}")
         frequent_itemsets.extend(itemsets)
+        df = df[[list(element)[0] for element in itemsets]]
         for i in range(2, len(df.columns)):
             candidates = self._apriori_gen(itemsets, df, minsup)
             itemsets = [
