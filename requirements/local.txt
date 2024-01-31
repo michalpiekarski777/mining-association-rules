@@ -1,0 +1,5 @@
+-r base.txt
+
+
+pre-commit==2.20.0  # https://github.com/pre-commit/pre-commit
+black==22.8.0  # https://github.com/psf/black

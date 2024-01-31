@@ -3,11 +3,11 @@ from itertools import chain, combinations
 
 import pandas as pd
 
-from apriori_df.apriori.itemsets import find_frequent_itemsets as df_find_frequent_itemsets
+from apriori_df.apriori.apriori import DataFrameRuleGenerator
 from apriori_list.apriori.itemsets import find_frequent_itemsets as li_find_frequent_itemsets
 from common.apriori.attractiveness_measures import support
-from common.utils.typed_dicts import AssociationRule
 from common.utils import consts
+from common.utils.typed_dicts import AssociationRule
 
 
 def generate_subset_combinations(elements: set) -> list[tuple]:
@@ -23,7 +23,9 @@ def generate_subset_combinations(elements: set) -> list[tuple]:
 
 
 def generate_association_rules(
-    frequent_itemsets: list[set], transactions: pd.DataFrame | list[set], minconf: float = consts.CONFIDENCE_THRESHOLD
+    frequent_itemsets: list[set],
+    transactions: pd.DataFrame | list[set],
+    minconf: float = consts.CONFIDENCE_THRESHOLD,
 ) -> list[AssociationRule]:
     """
     For each frequent itemsts find not empty subsets subLi, so the support of Li divided by support of subLi is greater
@@ -36,7 +38,11 @@ def generate_association_rules(
     rules: list[AssociationRule] = []
     for itemset in frequent_itemsets:
         for subset in generate_subset_combinations(itemset):
-            if support(itemset, transactions, None) / support(set(subset), transactions, None) >= minconf:
+            if (
+                support(itemset, transactions, None)
+                / support(set(subset), transactions, None)
+                >= minconf
+            ):
                 rules.append(
                     dict(
                         antecedent=set(subset),
@@ -47,13 +53,18 @@ def generate_association_rules(
 
 
 def generate_strong_association_rules(
-    transactions: pd.DataFrame | list[set], elements: set | None = None, sp = None
+    transactions: pd.DataFrame | list[set], elements: set | None = None
 ) -> list[AssociationRule]:
     if isinstance(transactions, pd.DataFrame):
-        frequent_itemsets = df_find_frequent_itemsets(transactions, consts.SUPPORT_THRESHOLD, sp)
+        rule_generator = DataFrameRuleGenerator()
+        frequent_itemsets = rule_generator.find_frequent_itemsets(
+            transactions, consts.SUPPORT_THRESHOLD
+        )
 
     elif isinstance(transactions, list):
-        frequent_itemsets = li_find_frequent_itemsets(elements, transactions, consts.SUPPORT_THRESHOLD, sp)
+        frequent_itemsets = li_find_frequent_itemsets(
+            elements, transactions, consts.SUPPORT_THRESHOLD
+        )
 
     else:
         raise TypeError

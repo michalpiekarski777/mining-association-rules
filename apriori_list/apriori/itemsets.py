@@ -1,5 +1,4 @@
 import logging
-import time
 
 from common.apriori.attractiveness_measures import support
 from common.apriori.itemsets import apriori_gen
@@ -10,7 +9,10 @@ logger = logging.getLogger(__name__)
 
 
 def find_frequent_itemsets(
-    elements_universe: set, transactions: list[set], minsup: float = consts.SUPPORT_THRESHOLD, sp = None
+    elements_universe: set,
+    transactions: list[set],
+    minsup: float = consts.SUPPORT_THRESHOLD,
+    sp=None,
 ) -> list[set]:
     """
     Finds all subsets of elements_universe that meet support threshold
@@ -40,5 +42,7 @@ def find_frequent_itemsets(
         frequent_itemsets.extend(itemsets)
         if not itemsets:
             break
-    logger.info(f"Calculating support took {sp.duration} and was done {sp.supp_calculations} times")
+    logger.info(
+        f"Calculating support took {sp.duration} and was done {sp.supp_calculations} times"
+    )
     return frequent_itemsets

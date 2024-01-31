@@ -11,7 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 def apriori_gen(
-    itemsets: list[set], transactions: pd.DataFrame | list[set], minsup: float = consts.SUPPORT_THRESHOLD, sp = None
+    itemsets: list[set],
+    transactions: pd.DataFrame | list[set],
+    minsup: float = consts.SUPPORT_THRESHOLD,
+    sp=None,
 ) -> list[set]:
     """
     Returns list of k-element candidate itemsets

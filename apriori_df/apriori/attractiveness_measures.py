@@ -1,5 +1,6 @@
 import logging
 import time
+
 import pandas as pd
 
 from common.utils.exceptions import EmptyTransactionBaseException
