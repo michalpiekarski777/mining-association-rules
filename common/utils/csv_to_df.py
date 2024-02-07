@@ -27,7 +27,7 @@ def transform_groceries_dataset():
 
 
 def transform_mobile_survey_dataset():
-    input_path = Path(ROOT_DIR) / "apriori_df" / "sources" / "raw" / "raw-data.csv"
+    input_path = Path(ROOT_DIR) / "sources" / "raw" / "raw-data.csv"
     elements, transactions = read_mobile_survey(input_path)
-    output_path = Path(ROOT_DIR) / "apriori_df" / "sources" / "survey.parquet"
+    output_path = Path(ROOT_DIR) / "sources" / "survey.parquet"
     convert(elements, transactions, output_path, file_format=FileFormat.PARQUET)

@@ -1,3 +1,5 @@
+import re
+
 import pandas as pd
 
 
@@ -18,4 +20,19 @@ def read_transactions_shop(path):
 
 
 def read_mobile_survey(path):
-    pass
+    def cat_strings(row):
+        row.dropna(inplace=True)
+        values = set()
+        for col in row:
+            for value in re.split(r"[;,]", col):
+                values.add(value.strip())
+        return values
+
+    df = pd.read_csv(path)
+    df = df.iloc[
+        :, 8:21
+    ]  # select columns with answers to questions about what apps users use
+    apps = df.apply(cat_strings, axis=1)
+    elements = set(apps.explode().unique())
+    transactions = apps.tolist()
+    return elements, transactions

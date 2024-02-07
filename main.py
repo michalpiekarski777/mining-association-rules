@@ -18,7 +18,7 @@ def main():
     runner = sys.argv[1] if len(sys.argv) > 1 else "default"
     if runner == "default":
         start = time.perf_counter()
-        df = pd.read_parquet(Path(ROOT_DIR) / "sources" / "shop.parquet")
+        df = pd.read_parquet(Path(ROOT_DIR) / "sources" / "survey.parquet")
         logger.info(f"Reading dataframe took {time.perf_counter() - start}")
         rule_generator = DataFrameRuleGenerator()
         rules = rule_generator.generate_strong_association_rules(df)
