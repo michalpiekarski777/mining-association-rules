@@ -31,15 +31,12 @@ class RuleGenerator(metaclass=ABCMeta):
     def _apriori_gen(
         self,
         itemsets: list[set],
-        transactions: pd.DataFrame | list[set],
-        minsup: float = consts.SUPPORT_THRESHOLD,
     ) -> list[set]:
         """
         Returns list of k-element candidate itemsets
         :param elements:
         :return:
         """
-        start = time.perf_counter()
         candidates = []
         set_length = len(itemsets[0])
         sorted_itemsets = [sorted(itemset) for itemset in itemsets]
@@ -53,13 +50,7 @@ class RuleGenerator(metaclass=ABCMeta):
                     == sorted_itemsets[j][: set_length - 1]
                 ):
                     candidates.append(itemset.union(itemsets[j]))
-        end = time.perf_counter()
-        logger.info(f"Generating candidates of length 2 took {end - start}")
-        return [
-            candidate
-            for candidate in candidates
-            if self.support(candidate, transactions) >= minsup
-        ]
+        return candidates
 
     def _generate_association_rules(
         self,
