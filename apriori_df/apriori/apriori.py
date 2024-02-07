@@ -30,6 +30,15 @@ class DataFrameRuleGenerator(RuleGenerator):
 
         return supported_transactions_count / len(df)
 
+    def alternative_support(self, df: pd.DataFrame, minsup: float) -> pd.DataFrame:
+        if df.empty is True:
+            raise EmptyTransactionBaseException
+        start = time.perf_counter()
+        ret = df.loc[:, (df.sum() / len(df)) > minsup]
+        self.support_calculations_time += time.perf_counter() - start
+        self.support_calculations += 1
+        return ret
+
     def generate_strong_association_rules(
         self, transactions: pd.DataFrame, elements: set | None = None
     ) -> list[AssociationRule]:
@@ -47,22 +56,26 @@ class DataFrameRuleGenerator(RuleGenerator):
     ) -> list[set]:
         """
         Finds all subsets of elements_universe that meet support threshold
-        :param elements_universe:
-        :return:
+        :param df: transaction database
+        :param minsup: minimum support threshold
+        :return: list of subsets of elements universe
         """
         frequent_itemsets = []
         start = time.perf_counter()
-        itemsets = [
-            {element} for element in df.columns if self.support({element}, df) >= minsup
-        ]
+        # itemsets = [
+        #     {element} for element in df.columns if self.support({element}, df) >= minsup
+        # ]
+        # df = df[[list(element)[0] for element in itemsets]]
+        df = self.alternative_support(df, minsup)
+        itemsets = [{element} for element in df.columns]
+        # df = df[[list(element)[0] for element in itemsets]]
         logger.info(
             f"Finding frequent itemsets of length 1 took {time.perf_counter() - start}"
         )
         logger.info(f"{1} elements frequent itemsets {len(itemsets)}")
         frequent_itemsets.extend(itemsets)
-        df = df[[list(element)[0] for element in itemsets]]
         for i in range(2, len(df.columns)):
-            candidates = self._apriori_gen(itemsets, df, minsup)
+            candidates = self._apriori_gen(itemsets)
             itemsets = [
                 candidate
                 for candidate in candidates

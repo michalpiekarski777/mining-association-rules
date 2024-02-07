@@ -61,7 +61,7 @@ class ListRuleGenerator(RuleGenerator):
         frequent_itemsets.extend(itemsets)
         for i in range(2, len(elements_universe)):
             logger.info(f"Searching for itemsets of length {i}")
-            candidates = self._apriori_gen(itemsets, transactions, minsup)
+            candidates = self._apriori_gen(itemsets)
             itemsets = [
                 candidate
                 for candidate in candidates
