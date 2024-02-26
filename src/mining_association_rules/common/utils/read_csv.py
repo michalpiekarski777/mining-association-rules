@@ -29,9 +29,7 @@ def read_mobile_survey(path):
         return values
 
     df = pd.read_csv(path)
-    df = df.iloc[
-        :, 8:21
-    ]  # select columns with answers to questions about what apps users use
+    df = df.iloc[:, 8:21]  # select columns with answers to questions about what apps users use
     apps = df.apply(cat_strings, axis=1)
     elements = set(apps.explode().unique())
     transactions = apps.tolist()

@@ -29,15 +29,19 @@ Issues = "https://github.com/michalpiekarski777/mining-association-rules/issues"
 dependencies = {file = ["requirements/base.txt"]}
 optional-dependencies = {dev = { file = ["requirements-dev.txt"] }}
 
+[tool.black]
+line-length = 100
+
 [tool.flake8]
-max-line-length = 120
+max-line-length = 100
 exclude = ".git,venv"
 
 [tool.isort]
-line_length = 120
+line_length = 100
 skip = "venv/"
 include_trailing_comma = true
 use_parentheses = true
+profile = "black"
 
 [tool.mypy]
 warn_unused_ignores = true

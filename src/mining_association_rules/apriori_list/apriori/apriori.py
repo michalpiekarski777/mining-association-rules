@@ -18,9 +18,7 @@ class ListRuleGenerator(RuleGenerator):
         if not transactions:
             raise EmptyTransactionBaseException
         start = time.perf_counter()
-        supported = [
-            itemset for transaction in transactions if itemset.issubset(transaction)
-        ]
+        supported = [itemset for transaction in transactions if itemset.issubset(transaction)]
         self.support_calculations_time += time.perf_counter() - start
         self.support_calculations += 1
         return len(supported) / len(transactions)

@@ -41,14 +41,9 @@ class RuleGenerator(metaclass=ABCMeta):
         set_length = len(itemsets[0])
         sorted_itemsets = [sorted(itemset) for itemset in itemsets]
 
-        for index, (itemset, sorted_itemset) in enumerate(
-            zip(itemsets, sorted_itemsets)
-        ):
+        for index, (itemset, sorted_itemset) in enumerate(zip(itemsets, sorted_itemsets)):
             for j in range(index + 1, len(itemsets)):
-                if (
-                    sorted_itemset[: set_length - 1]
-                    == sorted_itemsets[j][: set_length - 1]
-                ):
+                if sorted_itemset[: set_length - 1] == sorted_itemsets[j][: set_length - 1]:
                     candidates.append(itemset.union(itemsets[j]))
         return candidates
 
@@ -70,8 +65,7 @@ class RuleGenerator(metaclass=ABCMeta):
         for itemset in frequent_itemsets:
             for subset in self._generate_subset_combinations(itemset):
                 if (
-                    self.support(itemset, transactions)
-                    / self.support(set(subset), transactions)
+                    self.support(itemset, transactions) / self.support(set(subset), transactions)
                     >= minconf
                 ):
                     rules.append(
@@ -88,7 +82,5 @@ class RuleGenerator(metaclass=ABCMeta):
         :return: list of not empty subsets of set elements excluding set of length len(elements)
         """
         return list(
-            chain.from_iterable(
-                combinations(elements, size) for size in range(1, len(elements))
-            )
+            chain.from_iterable(combinations(elements, size) for size in range(1, len(elements)))
         )

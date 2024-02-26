@@ -43,9 +43,7 @@ class DataFrameRuleGenerator(RuleGenerator):
         self, transactions: pd.DataFrame, elements: set | None = None
     ) -> list[AssociationRule]:
         start = time.perf_counter()
-        frequent_itemsets = self.find_frequent_itemsets(
-            transactions, consts.SUPPORT_THRESHOLD
-        )
+        frequent_itemsets = self.find_frequent_itemsets(transactions, consts.SUPPORT_THRESHOLD)
         rules = self._generate_association_rules(frequent_itemsets, transactions)
         self.total_duration = time.perf_counter() - start
 
@@ -69,17 +67,13 @@ class DataFrameRuleGenerator(RuleGenerator):
         df = self.alternative_support(df, minsup)
         itemsets = [{element} for element in df.columns]
         # df = df[[list(element)[0] for element in itemsets]]
-        logger.info(
-            f"Finding frequent itemsets of length 1 took {time.perf_counter() - start}"
-        )
+        logger.info(f"Finding frequent itemsets of length 1 took {time.perf_counter() - start}")
         logger.info(f"{1} elements frequent itemsets {len(itemsets)}")
         frequent_itemsets.extend(itemsets)
         for i in range(2, len(df.columns)):
             candidates = self._apriori_gen(itemsets)
             itemsets = [
-                candidate
-                for candidate in candidates
-                if self.support(candidate, df) >= minsup
+                candidate for candidate in candidates if self.support(candidate, df) >= minsup
             ]
             logger.info(f"{i} elements frequent itemsets {len(itemsets)}")
             frequent_itemsets.extend(itemsets)
