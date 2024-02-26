@@ -1,5 +1,6 @@
 -r base.txt
 
 
-pre-commit==2.20.0  # https://github.com/pre-commit/pre-commit
-black==22.8.0  # https://github.com/psf/black
+pre-commit==3.6.2  # https://github.com/pre-commit/pre-commit
+black==24.2.0  # https://github.com/psf/black
+mypy==1.8.0  # https://github.com/python/mypy
