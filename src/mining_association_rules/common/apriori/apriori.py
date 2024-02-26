@@ -5,8 +5,8 @@ from itertools import chain, combinations
 
 import pandas as pd
 
-from common.utils import consts
-from common.utils.typed_dicts import AssociationRule
+from src.mining_association_rules.common.utils import consts
+from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

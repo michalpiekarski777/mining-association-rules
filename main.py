@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from apriori_df.apriori.apriori import DataFrameRuleGenerator
-from apriori_list.apriori.apriori import ListRuleGenerator
-from common.utils.read_csv import read_transactions_shop
 from config import ROOT_DIR
+from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRuleGenerator
+from src.mining_association_rules.apriori_list.apriori.apriori import ListRuleGenerator
+from src.mining_association_rules.common.utils.read_csv import read_transactions_shop
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

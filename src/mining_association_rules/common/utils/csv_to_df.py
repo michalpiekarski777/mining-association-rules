@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from common.utils.enums import FileFormat
-from common.utils.read_csv import read_mobile_survey, read_transactions_groceries
 from config import ROOT_DIR
+from src.mining_association_rules.common.utils.enums import FileFormat
+from src.mining_association_rules.common.utils.read_csv import read_mobile_survey, read_transactions_groceries
 
 
 def convert(elements, transactions, path, file_format):
