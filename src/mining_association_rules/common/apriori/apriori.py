@@ -1,7 +1,7 @@
 import logging
 import time
-from abc import ABCMeta, abstractmethod
 from itertools import chain, combinations
+from typing import Protocol
 
 import pandas as pd
 
@@ -12,21 +12,17 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-class RuleGenerator(metaclass=ABCMeta):
+class RuleGenerator(Protocol):
+    support_calculations: int = 0
+    support_calculations_time: float = 0.0
+    total_duration: float = 0.0
+
     def __init__(self):
         self.start = time.perf_counter()
-        self.support_calculations = 0
-        self.support_calculations_time = 0.0
-        self.total_duration = 0.0
 
-    def generate_strong_association_rules(
-        self, transactions: pd.DataFrame | list[set], elements: set | None = None
-    ) -> list[AssociationRule]:
-        raise NotImplementedError
+    def generate_strong_association_rules(self, *args, **kwargs) -> list[AssociationRule]: ...
 
-    @abstractmethod
-    def support(self, itemset: set, transactions: pd.DataFrame | list[set]) -> float:
-        raise NotImplementedError
+    def support(self, *args, **kwargs) -> float: ...
 
     def _apriori_gen(
         self,
