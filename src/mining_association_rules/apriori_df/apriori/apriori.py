@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class DataFrameRuleGenerator(RuleGenerator):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, source: str):
+        super().__init__(runner="df", source=source)
 
     def support(self, itemset: set, df: pd.DataFrame) -> float:
         if df.empty is True:
@@ -24,7 +24,7 @@ class DataFrameRuleGenerator(RuleGenerator):
         if len(itemset) > 1:
             supported_transactions_count = len(df[df[list(itemset)].eq(1).all(axis=1)])
         else:
-            supported_transactions_count = df[list(itemset)[0]].value_counts().iloc[-1]
+            supported_transactions_count = df[list(itemset)[0]].value_counts().loc[1]
         self.support_calculations_time += time.perf_counter() - start
         self.support_calculations += 1
 
@@ -67,15 +67,17 @@ class DataFrameRuleGenerator(RuleGenerator):
         df = self.alternative_support(df, minsup)
         itemsets = [{element} for element in df.columns]
         # df = df[[list(element)[0] for element in itemsets]]
-        logger.info(f"Finding frequent itemsets of length 1 took {time.perf_counter() - start}")
-        logger.info(f"{1} elements frequent itemsets {len(itemsets)}")
+        self._logger.info(
+            f"Finding frequent itemsets of length 1 took {time.perf_counter() - start}"
+        )
+        self._logger.info(f"{1} elements frequent itemsets {len(itemsets)}")
         frequent_itemsets.extend(itemsets)
         for i in range(2, len(df.columns)):
             candidates = self._apriori_gen(itemsets)
             itemsets = [
                 candidate for candidate in candidates if self.support(candidate, df) >= minsup
             ]
-            logger.info(f"{i} elements frequent itemsets {len(itemsets)}")
+            self._logger.info(f"{i} elements frequent itemsets {len(itemsets)}")
             frequent_itemsets.extend(itemsets)
             if not itemsets:
                 break

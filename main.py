@@ -1,6 +1,5 @@
 import logging
 import sys
-import time
 from pathlib import Path
 
 import pandas as pd
@@ -17,29 +16,20 @@ logger = logging.getLogger(__name__)
 def main():
     runner = sys.argv[1] if len(sys.argv) > 1 else "default"
     if runner == "default":
-        start = time.perf_counter()
-        df = pd.read_parquet(Path(ROOT_DIR) / "sources" / "survey.parquet")
-        logger.info(f"Reading dataframe took {time.perf_counter() - start}")
-        rule_generator = DataFrameRuleGenerator()
-        rules = rule_generator.generate_strong_association_rules(df)
-    else:
-        path = Path(ROOT_DIR) / "sources" / "shop.csv"
-        elements, transactions = read_transactions_shop(path)
-        rule_generator = ListRuleGenerator()
-        rules = rule_generator.generate_strong_association_rules(transactions, elements)
+        source = "survey.parquet"
+        df = pd.read_parquet(Path(ROOT_DIR) / "sources" / source)
+        generator_class = DataFrameRuleGenerator
+        kwargs = dict(transactions=df)
 
-    logger.info(
-        f"Rules generated using {runner} database in {rule_generator.total_duration} seconds"
-    )
-    logger.info(
-        f"""
-            Calculating support to generate association rules took {rule_generator.support_calculations_time}
-            and was done {rule_generator.support_calculations} times
-        """
-    )
-    logger.info(f"Found {len(rules)} rules")
-    for rule in rules:
-        logger.info(f"Association rule {rule['antecedent']} -> {rule['consequent']}")
+    else:
+        source = "shop.csv"
+        path = Path(ROOT_DIR) / "sources" / source
+        elements, transactions = read_transactions_shop(path)
+        generator_class = ListRuleGenerator
+        kwargs = dict(transactions=transactions, elements=elements)
+
+    with generator_class(source=source) as rule_gen:
+        rule_gen.generate_strong_association_rules(**kwargs)
 
 
 if __name__ == "__main__":

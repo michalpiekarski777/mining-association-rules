@@ -1,15 +1,15 @@
 import logging
 import time
+from datetime import datetime
 from itertools import chain, combinations
+from pathlib import Path
 from typing import Protocol
 
 import pandas as pd
 
+from config import ROOT_DIR
 from src.mining_association_rules.common.utils import consts
 from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
 
 class RuleGenerator(Protocol):
@@ -17,8 +17,36 @@ class RuleGenerator(Protocol):
     support_calculations_time: float = 0.0
     total_duration: float = 0.0
 
-    def __init__(self):
+    def _initialize_logger(self) -> logging.Logger:
+        file_name = datetime.now().strftime("%Y%m%d_%H%M_%s")
+        handler = logging.FileHandler(Path(ROOT_DIR) / "logs" / file_name)
+        logger = logging.getLogger(__name__)
+        logger.addHandler(handler)
+        logger.info(f"Generating association rules for source {self._source}")
+        return logger
+
+    def __init__(self, runner: str, source: str):
         self.start = time.perf_counter()
+        self._runner = runner
+        self._source = source
+        self._rules: list[AssociationRule] = []
+        self._logger = self._initialize_logger()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._logger.info(
+            f"Rules generated using {self._runner} database in {self.total_duration} seconds"
+        )
+        self._logger.info(
+            f"Calculating support was done {self.support_calculations} and took {self.support_calculations_time}"
+        )
+        self._logger.info(f"Found {len(self._rules)} rules")
+        for rule in self._rules:
+            rule_members = f"Association rule {rule['antecedent']} -> {rule['consequent']},"
+            metrics = f" support: {rule['support']}, confidence: {rule['confidence']}"
+            self._logger.info(rule_members + metrics)
 
     def generate_strong_association_rules(self, *args, **kwargs) -> list[AssociationRule]: ...
 
@@ -57,20 +85,22 @@ class RuleGenerator(Protocol):
         :param minconf:
         :return:
         """
-        rules: list[AssociationRule] = []
         for itemset in frequent_itemsets:
             for subset in self._generate_subset_combinations(itemset):
-                if (
-                    self.support(itemset, transactions) / self.support(set(subset), transactions)
-                    >= minconf
-                ):
-                    rules.append(
+                rule_support = self.support(itemset, transactions)
+                subset_support = self.support(set(subset), transactions)
+                rule_confidence = rule_support / subset_support
+
+                if rule_confidence >= minconf:
+                    self._rules.append(
                         dict(
                             antecedent=set(subset),
                             consequent=itemset - set(subset),
+                            support=round(rule_support, 3),
+                            confidence=round(rule_confidence, 3),
                         )
                     )
-        return rules
+        return self._rules
 
     def _generate_subset_combinations(self, elements: set) -> list[tuple]:
         """

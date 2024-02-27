@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class ListRuleGenerator(RuleGenerator):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, source: str):
+        super().__init__(runner="list", source=source)
 
     def support(self, itemset: set, transactions: list[set]) -> float:
         if not transactions:
@@ -55,17 +55,16 @@ class ListRuleGenerator(RuleGenerator):
         if not itemsets:
             return frequent_itemsets
 
-        logger.info(f"{1} elements frequent itemsets {len(itemsets)}")
+        self._logger.info(f"{1} elements frequent itemsets {len(itemsets)}")
         frequent_itemsets.extend(itemsets)
         for i in range(2, len(elements_universe)):
-            logger.info(f"Searching for itemsets of length {i}")
             candidates = self._apriori_gen(itemsets)
             itemsets = [
                 candidate
                 for candidate in candidates
                 if self.support(candidate, transactions) >= minsup
             ]
-            logger.info(f"{i} elements frequent itemsets {len(itemsets)}")
+            self._logger.info(f"{i} elements frequent itemsets {len(itemsets)}")
             frequent_itemsets.extend(itemsets)
             if not itemsets:
                 break

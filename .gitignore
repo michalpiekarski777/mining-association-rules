@@ -2,3 +2,4 @@ venv/
 .idea/
 sources/raw/raw-data.csv
 dist/
+logs/
