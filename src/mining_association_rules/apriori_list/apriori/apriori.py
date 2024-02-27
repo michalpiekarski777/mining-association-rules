@@ -24,7 +24,7 @@ class ListRuleGenerator(RuleGenerator):
         return len(supported) / len(transactions)
 
     def generate_strong_association_rules(
-        self, transactions: list[set], elements: set = None
+        self, transactions: list[set], elements: set
     ) -> list[AssociationRule]:
         start = time.perf_counter()
         frequent_itemsets = self.find_frequent_itemsets(
@@ -46,7 +46,7 @@ class ListRuleGenerator(RuleGenerator):
         :param elements_universe:
         :return:
         """
-        frequent_itemsets = []
+        frequent_itemsets: list[set] = []
         itemsets = [
             {element}
             for element in elements_universe
