@@ -8,6 +8,7 @@ from config import ROOT_DIR
 from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRuleGenerator
 from src.mining_association_rules.apriori_list.apriori.apriori import ListRuleGenerator
 from src.mining_association_rules.common.utils.read_csv import read_transactions_shop
+from src.mining_association_rules.common.utils.runners import run
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -18,18 +19,17 @@ def main():
     if runner == "default":
         source = "survey.parquet"
         df = pd.read_parquet(Path(ROOT_DIR) / "sources" / source)
-        generator_class = DataFrameRuleGenerator
+        rule_gen = DataFrameRuleGenerator(source=source)
         kwargs = dict(transactions=df)
 
     else:
         source = "shop.csv"
         path = Path(ROOT_DIR) / "sources" / source
         elements, transactions = read_transactions_shop(path)
-        generator_class = ListRuleGenerator
+        rule_gen = ListRuleGenerator(source=source)
         kwargs = dict(transactions=transactions, elements=elements)
 
-    with generator_class(source=source) as rule_gen:
-        rule_gen.generate_strong_association_rules(**kwargs)
+    run(rule_gen, kwargs)
 
 
 if __name__ == "__main__":

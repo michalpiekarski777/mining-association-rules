@@ -1,9 +1,9 @@
 import logging
 import time
+from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from itertools import chain, combinations
 from pathlib import Path
-from typing import Protocol
 
 import pandas as pd
 
@@ -12,7 +12,7 @@ from src.mining_association_rules.common.utils import consts
 from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
 
 
-class RuleGenerator(Protocol):
+class RuleGenerator(metaclass=ABCMeta):
     support_calculations: int = 0
     support_calculations_time: float = 0.0
     total_duration: float = 0.0
@@ -48,9 +48,13 @@ class RuleGenerator(Protocol):
             metrics = f" support: {rule['support']}, confidence: {rule['confidence']}"
             self._logger.info(rule_members + metrics)
 
-    def generate_strong_association_rules(self, *args, **kwargs) -> list[AssociationRule]: ...
+    @abstractmethod
+    def generate_strong_association_rules(self, *args, **kwargs) -> list[AssociationRule]:
+        raise NotImplementedError
 
-    def support(self, *args, **kwargs) -> float: ...
+    @abstractmethod
+    def support(self, *args, **kwargs) -> float:
+        raise NotImplementedError
 
     def _apriori_gen(
         self,
