@@ -22,17 +22,18 @@ class DataFrameRuleGenerator(RuleGenerator):
 
         start = time.perf_counter()
         if len(itemset) > 1:
-            supported_transactions_count = len(df[df[list(itemset)].eq(1).all(axis=1)])
+            sup = df[list(itemset)].eq(1).all(axis=1).value_counts().get(True, 0) / len(df)
         else:
-            supported_transactions_count = df[list(itemset)[0]].value_counts().loc[1]
+            sup = df[list(itemset)[0]].value_counts().loc[1] / len(df)
         self.support_calculations_time += time.perf_counter() - start
         self.support_calculations += 1
 
-        return supported_transactions_count / len(df)
+        return sup
 
-    def alternative_support(self, df: pd.DataFrame, minsup: float) -> pd.DataFrame:
+    def truncate_infrequent(self, df: pd.DataFrame, minsup: float) -> pd.DataFrame:
         if df.empty is True:
             raise EmptyTransactionBaseException
+
         start = time.perf_counter()
         ret = df.loc[:, (df.sum() / len(df)) > minsup]
         self.support_calculations_time += time.perf_counter() - start
@@ -60,13 +61,8 @@ class DataFrameRuleGenerator(RuleGenerator):
         """
         frequent_itemsets = []
         start = time.perf_counter()
-        # itemsets = [
-        #     {element} for element in df.columns if self.support({element}, df) >= minsup
-        # ]
-        # df = df[[list(element)[0] for element in itemsets]]
-        df = self.alternative_support(df, minsup)
+        df = self.truncate_infrequent(df, minsup)
         itemsets = [{element} for element in df.columns]
-        # df = df[[list(element)[0] for element in itemsets]]
         self._logger.info(
             f"Finding frequent itemsets of length 1 took {time.perf_counter() - start}"
         )
