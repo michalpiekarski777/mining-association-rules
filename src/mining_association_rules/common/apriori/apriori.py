@@ -110,15 +110,17 @@ class RuleGenerator(metaclass=ABCMeta):
                 itemset_measure = getattr(self, self.itemset_measure, self.support)(
                     itemset, transactions
                 )
+                antecedent = set(subset)
+                consequent = itemset - set(subset)
                 rule_measure = getattr(self, self.rule_measure, self.confidence)(
-                    itemset, set(subset), transactions
+                    antecedent, consequent, transactions
                 )
 
-                if rule_measure >= minconf:
+                if rule_measure <= minconf:
                     self._rules.append(
                         dict(
-                            antecedent=set(subset),
-                            consequent=itemset - set(subset),
+                            antecedent=antecedent,
+                            consequent=consequent,
                             itemset_measure=dict(
                                 name=self.itemset_measure, value=round(itemset_measure, 3)
                             ),

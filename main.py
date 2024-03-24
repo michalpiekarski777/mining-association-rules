@@ -19,7 +19,9 @@ def main():
     if runner == "default":
         source = "survey.parquet"
         df = pd.read_parquet(Path(ROOT_DIR) / "sources" / source)
-        rule_gen = DataFrameRuleGenerator(source=source)
+        rule_gen = DataFrameRuleGenerator(
+            source=source, itemset_measure="support", rule_measure="anti_support"
+        )
         kwargs = dict(transactions=df)
 
     else:

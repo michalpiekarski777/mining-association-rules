@@ -34,11 +34,31 @@ class DataFrameRuleGenerator(RuleGenerator):
 
         return sup
 
-    def confidence(self, itemset: set, antecedent: set, df: pd.DataFrame) -> float:
-        rule_support = self.support(itemset, df)
+    def anti_support(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
+        rule_support = self.support(antecedent | consequent, df)
+        antecedent_support = self.support(set(antecedent), df)
+        consequent_support = self.support(set(consequent), df)
+
+        return (consequent_support - rule_support) / (1 - antecedent_support)
+
+    def confidence(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
+        rule_support = self.support(antecedent | consequent, df)
         antecedent_support = self.support(set(antecedent), df)
 
         return rule_support / antecedent_support
+
+    def lift(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
+        rule_support = self.support(antecedent | consequent, df)
+        antecedent_support = self.support(set(antecedent), df)
+        consequent_support = self.support(set(consequent), df)
+
+        return rule_support / (antecedent_support * consequent_support)
+
+    def conviction(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
+        consequent_support = self.support(consequent, df)
+        rule_confidence = self.confidence(antecedent, consequent, df)
+
+        return (1 - consequent_support) / (1 - rule_confidence)
 
     def truncate_infrequent(self, df: pd.DataFrame, minsup: float) -> pd.DataFrame:
         if df.empty is True:
