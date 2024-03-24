@@ -13,8 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 class DataFrameRuleGenerator(RuleGenerator):
-    def __init__(self, source: str):
-        super().__init__(runner="df", source=source)
+    def __init__(
+        self, source: str, itemset_measure: str = "support", rule_measure: str = "confidence"
+    ):
+        super().__init__(
+            runner="df", source=source, itemset_measure=itemset_measure, rule_measure=rule_measure
+        )
 
     def support(self, itemset: set, df: pd.DataFrame) -> float:
         if df.empty is True:
@@ -29,6 +33,12 @@ class DataFrameRuleGenerator(RuleGenerator):
         self.support_calculations += 1
 
         return sup
+
+    def confidence(self, itemset: set, antecedent: set, df: pd.DataFrame) -> float:
+        rule_support = self.support(itemset, df)
+        antecedent_support = self.support(set(antecedent), df)
+
+        return rule_support / antecedent_support
 
     def truncate_infrequent(self, df: pd.DataFrame, minsup: float) -> pd.DataFrame:
         if df.empty is True:
@@ -71,7 +81,9 @@ class DataFrameRuleGenerator(RuleGenerator):
         for i in range(2, len(df.columns)):
             candidates = self._apriori_gen(itemsets)
             itemsets = [
-                candidate for candidate in candidates if self.support(candidate, df) >= minsup
+                candidate
+                for candidate in candidates
+                if getattr(self, self.itemset_measure, self.support)(candidate, df) >= minsup
             ]
             self._logger.info(f"{i} elements frequent itemsets {len(itemsets)}")
             frequent_itemsets.extend(itemsets)

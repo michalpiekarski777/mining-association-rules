@@ -1,8 +1,13 @@
 from typing import TypedDict
 
 
+class Measure(TypedDict):
+    name: str
+    value: float
+
+
 class AssociationRule(TypedDict):
     antecedent: set
     consequent: set
-    support: float
-    confidence: float
+    itemset_measure: Measure
+    rule_measure: Measure
