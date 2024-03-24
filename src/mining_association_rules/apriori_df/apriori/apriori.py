@@ -13,12 +13,32 @@ logger = logging.getLogger(__name__)
 
 
 class DataFrameRuleGenerator(RuleGenerator):
+    itemset_measures = ["support"]
+    rule_measures = [
+        "confidence",
+        "anti_support",
+        "lift",
+        "conviction",
+        "rule_interest_function",
+        "gain_function",
+        "dependency_factor",
+    ]
+
     def __init__(
         self, source: str, itemset_measure: str = "support", rule_measure: str = "confidence"
     ):
         super().__init__(
             runner="df", source=source, itemset_measure=itemset_measure, rule_measure=rule_measure
         )
+        if itemset_measure not in self.itemset_measures:
+            self._logger.warning(
+                f"Itemset measure {itemset_measure} not implemented, using support"
+            )
+            self.itemset_measure = "support"
+
+        if rule_measure not in self.rule_measures:
+            self._logger.warning(f"Rule measure {rule_measure} not implemented, using confidence")
+            self.rule_measure = "confidence"
 
     def support(self, itemset: set, df: pd.DataFrame) -> float:
         if df.empty is True:
@@ -34,6 +54,15 @@ class DataFrameRuleGenerator(RuleGenerator):
 
         return sup
 
+    def support_count(self, itemset: set, df: pd.DataFrame) -> float:
+        if df.empty is True:
+            raise EmptyTransactionBaseException
+
+        if len(itemset) > 1:
+            return df[list(itemset)].eq(1).all(axis=1).value_counts().get(True, 0)
+        else:
+            return df[list(itemset)[0]].value_counts().loc[1]
+
     def anti_support(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
         rule_support = self.support(antecedent | consequent, df)
         antecedent_support = self.support(set(antecedent), df)
@@ -42,23 +71,52 @@ class DataFrameRuleGenerator(RuleGenerator):
         return (consequent_support - rule_support) / (1 - antecedent_support)
 
     def confidence(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
-        rule_support = self.support(antecedent | consequent, df)
-        antecedent_support = self.support(set(antecedent), df)
+        rule_support = self.support_count(antecedent | consequent, df)
+        antecedent_support = self.support_count(set(antecedent), df)
 
         return rule_support / antecedent_support
 
     def lift(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
-        rule_support = self.support(antecedent | consequent, df)
-        antecedent_support = self.support(set(antecedent), df)
-        consequent_support = self.support(set(consequent), df)
+        rule_support_count = self.support_count(antecedent | consequent, df)
+        antecedent_support_count = self.support_count(set(antecedent), df)
+        consequent_support_count = self.support_count(set(consequent), df)
 
-        return rule_support / (antecedent_support * consequent_support)
+        return len(df) * rule_support_count / (antecedent_support_count * consequent_support_count)
 
     def conviction(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
         consequent_support = self.support(consequent, df)
         rule_confidence = self.confidence(antecedent, consequent, df)
 
         return (1 - consequent_support) / (1 - rule_confidence)
+
+    def rule_interest_function(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
+        rule_support_count = self.support_count(antecedent | consequent, df)
+        antecedent_support_count = self.support_count(antecedent, df)
+        consequent_support_count = self.support_count(consequent, df)
+
+        return rule_support_count - antecedent_support_count * consequent_support_count / len(df)
+
+    def gain_function(
+        self, antecedent: set, consequent: set, df: pd.DataFrame, gain: float = 0.8
+    ) -> float:
+        rule_support_count = self.support_count(antecedent | consequent, df)
+        antecedent_support_count = self.support_count(antecedent, df)
+
+        return rule_support_count - gain * antecedent_support_count
+
+    def dependency_factor(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
+        rule_support_count = self.support_count(antecedent | consequent, df)
+        antecedent_support_count = self.support_count(antecedent, df)
+        consequent_support_count = self.support_count(consequent, df)
+
+        numerator = (rule_support_count / antecedent_support_count) - (
+            consequent_support_count / len(df)
+        )
+        denominator = (rule_support_count / antecedent_support_count) + (
+            consequent_support_count / len(df)
+        )
+
+        return numerator / denominator
 
     def truncate_infrequent(self, df: pd.DataFrame, minsup: float) -> pd.DataFrame:
         if df.empty is True:

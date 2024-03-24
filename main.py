@@ -20,7 +20,7 @@ def main():
         source = "survey.parquet"
         df = pd.read_parquet(Path(ROOT_DIR) / "sources" / source)
         rule_gen = DataFrameRuleGenerator(
-            source=source, itemset_measure="support", rule_measure="anti_support"
+            source=source, itemset_measure="support", rule_measure="dependency_factor"
         )
         kwargs = dict(transactions=df)
 

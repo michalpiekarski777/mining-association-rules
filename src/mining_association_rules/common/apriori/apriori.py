@@ -116,7 +116,7 @@ class RuleGenerator(metaclass=ABCMeta):
                     antecedent, consequent, transactions
                 )
 
-                if rule_measure <= minconf:
+                if rule_measure >= minconf:
                     self._rules.append(
                         dict(
                             antecedent=antecedent,
