@@ -64,11 +64,12 @@ class DataFrameRuleGenerator(RuleGenerator):
             return df[list(itemset)[0]].value_counts().loc[1]
 
     def anti_support(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
-        rule_support = self.support(antecedent | consequent, df)
-        antecedent_support = self.support(set(antecedent), df)
-        consequent_support = self.support(set(consequent), df)
+        count_antecedent_not_consequent = df[
+            (df[list(antecedent)].sum(axis=1) == len(antecedent))
+            & (df[list(consequent)].sum(axis=1) < len(consequent))
+        ]
 
-        return (consequent_support - rule_support) / (1 - antecedent_support)
+        return len(count_antecedent_not_consequent) / len(df)
 
     def confidence(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
         rule_support = self.support_count(antecedent | consequent, df)
