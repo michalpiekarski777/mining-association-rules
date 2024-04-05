@@ -27,6 +27,8 @@ class DataFrameRuleGenerator(RuleGenerator):
     def __init__(
         self, source: str, itemset_measure: str = "support", rule_measure: str = "confidence"
     ):
+        self.supports: dict[frozenset[str], float] = {}
+        self.support_counts: dict[frozenset[str], float] = {}
         super().__init__(
             runner="df", source=source, itemset_measure=itemset_measure, rule_measure=rule_measure
         )
@@ -40,7 +42,10 @@ class DataFrameRuleGenerator(RuleGenerator):
             self._logger.warning(f"Rule measure {rule_measure} not implemented, using confidence")
             self.rule_measure = "confidence"
 
-    def support(self, itemset: set, df: pd.DataFrame) -> float:
+    def support(self, itemset: frozenset[str], df: pd.DataFrame) -> float:
+        if itemset in self.supports:
+            return self.supports[itemset]
+
         if df.empty is True:
             raise EmptyTransactionBaseException
 
@@ -51,10 +56,14 @@ class DataFrameRuleGenerator(RuleGenerator):
             sup = df[list(itemset)[0]].value_counts().loc[1] / len(df)
         self.support_calculations_time += time.perf_counter() - start
         self.support_calculations += 1
+        self.supports[itemset] = sup
 
         return sup
 
-    def support_count(self, itemset: set, df: pd.DataFrame) -> float:
+    def support_count(self, itemset: frozenset[str], df: pd.DataFrame) -> float:
+        if itemset in self.support_counts:
+            return self.support_counts[itemset]
+
         if df.empty is True:
             raise EmptyTransactionBaseException
 
@@ -63,7 +72,9 @@ class DataFrameRuleGenerator(RuleGenerator):
         else:
             return df[list(itemset)[0]].value_counts().loc[1]
 
-    def anti_support(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
+    def anti_support(
+        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
+    ) -> float:
         count_antecedent_not_consequent = df[
             (df[list(antecedent)].sum(axis=1) == len(antecedent))
             & (df[list(consequent)].sum(axis=1) < len(consequent))
@@ -71,26 +82,34 @@ class DataFrameRuleGenerator(RuleGenerator):
 
         return len(count_antecedent_not_consequent) / len(df)
 
-    def confidence(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
+    def confidence(
+        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
+    ) -> float:
         rule_support = self.support_count(antecedent | consequent, df)
-        antecedent_support = self.support_count(set(antecedent), df)
+        antecedent_support = self.support_count(antecedent, df)
 
         return rule_support / antecedent_support
 
-    def lift(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
+    def lift(
+        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
+    ) -> float:
         rule_support_count = self.support_count(antecedent | consequent, df)
-        antecedent_support_count = self.support_count(set(antecedent), df)
-        consequent_support_count = self.support_count(set(consequent), df)
+        antecedent_support_count = self.support_count(antecedent, df)
+        consequent_support_count = self.support_count(consequent, df)
 
         return len(df) * rule_support_count / (antecedent_support_count * consequent_support_count)
 
-    def conviction(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
+    def conviction(
+        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
+    ) -> float:
         consequent_support = self.support(consequent, df)
         rule_confidence = self.confidence(antecedent, consequent, df)
 
         return (1 - consequent_support) / (1 - rule_confidence)
 
-    def rule_interest_function(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
+    def rule_interest_function(
+        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
+    ) -> float:
         rule_support_count = self.support_count(antecedent | consequent, df)
         antecedent_support_count = self.support_count(antecedent, df)
         consequent_support_count = self.support_count(consequent, df)
@@ -98,14 +117,20 @@ class DataFrameRuleGenerator(RuleGenerator):
         return rule_support_count - antecedent_support_count * consequent_support_count / len(df)
 
     def gain_function(
-        self, antecedent: set, consequent: set, df: pd.DataFrame, gain: float = 0.8
+        self,
+        antecedent: frozenset[str],
+        consequent: frozenset[str],
+        df: pd.DataFrame,
+        gain: float = 0.8,
     ) -> float:
         rule_support_count = self.support_count(antecedent | consequent, df)
         antecedent_support_count = self.support_count(antecedent, df)
 
         return rule_support_count - gain * antecedent_support_count
 
-    def dependency_factor(self, antecedent: set, consequent: set, df: pd.DataFrame) -> float:
+    def dependency_factor(
+        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
+    ) -> float:
         rule_support_count = self.support_count(antecedent | consequent, df)
         antecedent_support_count = self.support_count(antecedent, df)
         consequent_support_count = self.support_count(consequent, df)
@@ -130,7 +155,7 @@ class DataFrameRuleGenerator(RuleGenerator):
         return ret
 
     def generate_strong_association_rules(
-        self, transactions: pd.DataFrame, elements: set | None = None
+        self, transactions: pd.DataFrame, elements: frozenset[str] | None = None
     ) -> list[AssociationRule]:
         start = time.perf_counter()
         frequent_itemsets = self.find_frequent_itemsets(transactions, consts.SUPPORT_THRESHOLD)
@@ -141,7 +166,7 @@ class DataFrameRuleGenerator(RuleGenerator):
 
     def find_frequent_itemsets(
         self, df: pd.DataFrame, minsup: float = consts.SUPPORT_THRESHOLD
-    ) -> list[set]:
+    ) -> list[frozenset[str]]:
         """
         Finds all subsets of elements_universe that meet support threshold
         :param df: transaction database
@@ -151,7 +176,7 @@ class DataFrameRuleGenerator(RuleGenerator):
         frequent_itemsets = []
         start = time.perf_counter()
         df = self.truncate_infrequent(df, minsup)
-        itemsets = [{element} for element in df.columns]
+        itemsets = [frozenset([element]) for element in df.columns]
         self._logger.info(
             f"Finding frequent itemsets of length 1 took {time.perf_counter() - start}"
         )

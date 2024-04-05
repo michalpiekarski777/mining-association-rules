@@ -7,7 +7,7 @@ class Measure(TypedDict):
 
 
 class AssociationRule(TypedDict):
-    antecedent: set
-    consequent: set
+    antecedent: frozenset[str]
+    consequent: frozenset[str]
     itemset_measure: Measure
     rule_measure: Measure

@@ -74,8 +74,8 @@ class RuleGenerator(metaclass=ABCMeta):
 
     def _apriori_gen(
         self,
-        itemsets: list[set],
-    ) -> list[set]:
+        itemsets: list[frozenset[str]],
+    ) -> list[frozenset[str]]:
         """
         Returns list of k-element candidate itemsets
         :param elements:
@@ -93,7 +93,7 @@ class RuleGenerator(metaclass=ABCMeta):
 
     def _generate_association_rules(
         self,
-        frequent_itemsets: list[set],
+        frequent_itemsets: list[frozenset[str]],
         transactions: pd.DataFrame | list[set],
         minconf: float = consts.CONFIDENCE_THRESHOLD,
     ) -> list[AssociationRule]:
@@ -110,8 +110,8 @@ class RuleGenerator(metaclass=ABCMeta):
                 itemset_measure = getattr(self, self.itemset_measure, self.support)(
                     itemset, transactions
                 )
-                antecedent = set(subset)
-                consequent = itemset - set(subset)
+                antecedent = frozenset(subset)
+                consequent = itemset - frozenset(subset)
                 rule_measure = getattr(self, self.rule_measure, self.confidence)(
                     antecedent, consequent, transactions
                 )
@@ -129,7 +129,7 @@ class RuleGenerator(metaclass=ABCMeta):
                     )
         return self._rules
 
-    def _generate_subset_combinations(self, elements: set) -> list[tuple]:
+    def _generate_subset_combinations(self, elements: frozenset[str]) -> list[tuple]:
         """
         :param elements: set of elements
         :return: list of not empty subsets of set elements excluding set of length len(elements)
