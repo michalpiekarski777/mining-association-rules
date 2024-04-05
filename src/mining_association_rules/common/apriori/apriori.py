@@ -15,6 +15,8 @@ from src.mining_association_rules.common.utils.typed_dicts import AssociationRul
 class RuleGenerator(metaclass=ABCMeta):
     support_calculations: int = 0
     support_calculations_time: float = 0.0
+    confidence_calculations: int = 0
+    confidence_calculations_time: float = 0.0
     total_duration: float = 0.0
 
     def _initialize_logger(self) -> logging.Logger:
@@ -49,6 +51,11 @@ class RuleGenerator(metaclass=ABCMeta):
         )
         self._logger.info(
             f"Calculating support was done {self.support_calculations} and took {self.support_calculations_time}"
+        )
+        self._logger.info(
+            f"""
+            Calculating confidence was done {self.confidence_calculations} and took {self.confidence_calculations_time}
+            """
         )
         self._logger.info(f"Found {len(self._rules)} rules")
         for rule in self._rules:

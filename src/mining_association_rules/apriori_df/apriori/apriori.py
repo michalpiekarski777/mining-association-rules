@@ -85,10 +85,14 @@ class DataFrameRuleGenerator(RuleGenerator):
     def confidence(
         self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
     ) -> float:
-        rule_support = self.support_count(antecedent | consequent, df)
-        antecedent_support = self.support_count(antecedent, df)
+        start = time.perf_counter()
+        rule_support = self.support(antecedent | consequent, df)
+        antecedent_support = self.support(antecedent, df)
+        confidence = rule_support / antecedent_support
+        self.confidence_calculations_time += time.perf_counter() - start
+        self.confidence_calculations += 1
 
-        return rule_support / antecedent_support
+        return confidence
 
     def lift(
         self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
