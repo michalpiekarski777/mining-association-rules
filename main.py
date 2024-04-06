@@ -6,6 +6,7 @@ import pandas as pd
 
 from config import ROOT_DIR
 from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRuleGenerator
+from src.mining_association_rules.apriori_df.interest_measures import Confidence, Support
 from src.mining_association_rules.apriori_list.apriori.apriori import ListRuleGenerator
 from src.mining_association_rules.common.utils.read_csv import read_transactions_shop
 from src.mining_association_rules.common.utils.runners import run
@@ -20,7 +21,7 @@ def main():
         source = "survey.parquet"
         df = pd.read_parquet(Path(ROOT_DIR) / "sources" / source)
         rule_gen = DataFrameRuleGenerator(
-            source=source, itemset_measure="support", rule_measure="confidence"
+            source=source, itemset_measure=Support, rule_measure=Confidence
         )
         kwargs = dict(transactions=df)
 

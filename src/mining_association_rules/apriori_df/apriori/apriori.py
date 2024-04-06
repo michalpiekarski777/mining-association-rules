@@ -3,6 +3,8 @@ import time
 
 import pandas as pd
 
+from src.mining_association_rules.apriori_df.interest_measures import Confidence, Support
+from src.mining_association_rules.apriori_df.interest_measures.base import Measure
 from src.mining_association_rules.common.apriori.apriori import RuleGenerator
 from src.mining_association_rules.common.utils import consts
 from src.mining_association_rules.common.utils.exceptions import EmptyTransactionBaseException
@@ -24,9 +26,7 @@ class DataFrameRuleGenerator(RuleGenerator):
         "dependency_factor",
     ]
 
-    def __init__(
-        self, source: str, itemset_measure: str = "support", rule_measure: str = "confidence"
-    ):
+    def __init__(self, source: str, itemset_measure: type[Measure], rule_measure: type[Measure]):
         self.supports: dict[frozenset[str], float] = {}
         self.support_counts: dict[frozenset[str], float] = {}
         super().__init__(
@@ -36,127 +36,17 @@ class DataFrameRuleGenerator(RuleGenerator):
             self._logger.warning(
                 f"Itemset measure {itemset_measure} not implemented, using support"
             )
-            self.itemset_measure = "support"
+            self.itemset_measure = Support()
 
         if rule_measure not in self.rule_measures:
             self._logger.warning(f"Rule measure {rule_measure} not implemented, using confidence")
-            self.rule_measure = "confidence"
-
-    def support(self, itemset: frozenset[str], df: pd.DataFrame) -> float:
-        if itemset in self.supports:
-            return self.supports[itemset]
-
-        if df.empty is True:
-            raise EmptyTransactionBaseException
-
-        start = time.perf_counter()
-        if len(itemset) > 1:
-            sup = df[list(itemset)].eq(1).all(axis=1).value_counts().get(True, 0) / len(df)
-        else:
-            sup = df[list(itemset)[0]].value_counts().loc[1] / len(df)
-        self.support_calculations_time += time.perf_counter() - start
-        self.support_calculations += 1
-        self.supports[itemset] = sup
-
-        return sup
-
-    def support_count(self, itemset: frozenset[str], df: pd.DataFrame) -> float:
-        if itemset in self.support_counts:
-            return self.support_counts[itemset]
-
-        if df.empty is True:
-            raise EmptyTransactionBaseException
-
-        if len(itemset) > 1:
-            return df[list(itemset)].eq(1).all(axis=1).value_counts().get(True, 0)
-        else:
-            return df[list(itemset)[0]].value_counts().loc[1]
-
-    def anti_support(
-        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
-    ) -> float:
-        count_antecedent_not_consequent = df[
-            (df[list(antecedent)].sum(axis=1) == len(antecedent))
-            & (df[list(consequent)].sum(axis=1) < len(consequent))
-        ]
-
-        return len(count_antecedent_not_consequent) / len(df)
-
-    def confidence(
-        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
-    ) -> float:
-        start = time.perf_counter()
-        rule_support = self.support(antecedent | consequent, df)
-        antecedent_support = self.support(antecedent, df)
-        confidence = rule_support / antecedent_support
-        self.confidence_calculations_time += time.perf_counter() - start
-        self.confidence_calculations += 1
-
-        return confidence
-
-    def lift(
-        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
-    ) -> float:
-        rule_support_count = self.support_count(antecedent | consequent, df)
-        antecedent_support_count = self.support_count(antecedent, df)
-        consequent_support_count = self.support_count(consequent, df)
-
-        return len(df) * rule_support_count / (antecedent_support_count * consequent_support_count)
-
-    def conviction(
-        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
-    ) -> float:
-        consequent_support = self.support(consequent, df)
-        rule_confidence = self.confidence(antecedent, consequent, df)
-
-        return (1 - consequent_support) / (1 - rule_confidence)
-
-    def rule_interest_function(
-        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
-    ) -> float:
-        rule_support_count = self.support_count(antecedent | consequent, df)
-        antecedent_support_count = self.support_count(antecedent, df)
-        consequent_support_count = self.support_count(consequent, df)
-
-        return rule_support_count - antecedent_support_count * consequent_support_count / len(df)
-
-    def gain_function(
-        self,
-        antecedent: frozenset[str],
-        consequent: frozenset[str],
-        df: pd.DataFrame,
-        gain: float = 0.8,
-    ) -> float:
-        rule_support_count = self.support_count(antecedent | consequent, df)
-        antecedent_support_count = self.support_count(antecedent, df)
-
-        return rule_support_count - gain * antecedent_support_count
-
-    def dependency_factor(
-        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
-    ) -> float:
-        rule_support_count = self.support_count(antecedent | consequent, df)
-        antecedent_support_count = self.support_count(antecedent, df)
-        consequent_support_count = self.support_count(consequent, df)
-
-        numerator = (rule_support_count / antecedent_support_count) - (
-            consequent_support_count / len(df)
-        )
-        denominator = (rule_support_count / antecedent_support_count) + (
-            consequent_support_count / len(df)
-        )
-
-        return numerator / denominator
+            self.rule_measure = Confidence()
 
     def truncate_infrequent(self, df: pd.DataFrame, minsup: float) -> pd.DataFrame:
         if df.empty is True:
             raise EmptyTransactionBaseException
 
-        start = time.perf_counter()
-        ret = df.loc[:, (df.sum() / len(df)) > minsup]
-        self.support_calculations_time += time.perf_counter() - start
-        self.support_calculations += 1
-        return ret
+        return df.loc[:, (df.sum() / len(df)) > minsup]
 
     def generate_strong_association_rules(
         self, transactions: pd.DataFrame, elements: frozenset[str] | None = None
@@ -191,7 +81,7 @@ class DataFrameRuleGenerator(RuleGenerator):
             itemsets = [
                 candidate
                 for candidate in candidates
-                if getattr(self, self.itemset_measure, self.support)(candidate, df) >= minsup
+                if self.itemset_measure.calculate(candidate, df) >= minsup
             ]
             self._logger.info(f"{i} elements frequent itemsets {len(itemsets)}")
             frequent_itemsets.extend(itemsets)

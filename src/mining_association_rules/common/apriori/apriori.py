@@ -8,15 +8,12 @@ from pathlib import Path
 import pandas as pd
 
 from config import ROOT_DIR
+from src.mining_association_rules.apriori_df.interest_measures.base import Measure
 from src.mining_association_rules.common.utils import consts
 from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
 
 
 class RuleGenerator(metaclass=ABCMeta):
-    support_calculations: int = 0
-    support_calculations_time: float = 0.0
-    confidence_calculations: int = 0
-    confidence_calculations_time: float = 0.0
     total_duration: float = 0.0
 
     def _initialize_logger(self) -> logging.Logger:
@@ -31,12 +28,12 @@ class RuleGenerator(metaclass=ABCMeta):
         self,
         runner: str,
         source: str,
-        itemset_measure: str = "support",
-        rule_measure: str = "confidence",
+        itemset_measure: type[Measure],
+        rule_measure: type[Measure],
     ):
         self.start = time.perf_counter()
-        self.itemset_measure = itemset_measure
-        self.rule_measure = rule_measure
+        self.itemset_measure = itemset_measure()
+        self.rule_measure = rule_measure()
         self._runner = runner
         self._source = source
         self._rules: list[AssociationRule] = []
@@ -50,11 +47,11 @@ class RuleGenerator(metaclass=ABCMeta):
             f"Rules generated using {self._runner} database in {self.total_duration} seconds"
         )
         self._logger.info(
-            f"Calculating support was done {self.support_calculations} and took {self.support_calculations_time}"
+            f"Calculating {type(self.itemset_measure).__name__} was done {self.itemset_measure.calculations_count} and took {self.itemset_measure.calculations_time}"
         )
         self._logger.info(
             f"""
-            Calculating confidence was done {self.confidence_calculations} and took {self.confidence_calculations_time}
+            Calculating {type(self.rule_measure).__name__} was done {self.rule_measure.calculations_count} and took {self.rule_measure.calculations_time}
             """
         )
         self._logger.info(f"Found {len(self._rules)} rules")
@@ -69,14 +66,6 @@ class RuleGenerator(metaclass=ABCMeta):
 
     @abstractmethod
     def generate_strong_association_rules(self, *args, **kwargs) -> list[AssociationRule]:
-        raise NotImplementedError
-
-    @abstractmethod
-    def support(self, *args, **kwargs) -> float:
-        raise NotImplementedError
-
-    @abstractmethod
-    def confidence(self, *args, **kwargs) -> float:
         raise NotImplementedError
 
     def _apriori_gen(
@@ -114,13 +103,11 @@ class RuleGenerator(metaclass=ABCMeta):
         """
         for itemset in frequent_itemsets:
             for subset in self._generate_subset_combinations(itemset):
-                itemset_measure = getattr(self, self.itemset_measure, self.support)(
-                    itemset, transactions
-                )
+                itemset_measure = self.itemset_measure.calculate(itemset, transactions)
                 antecedent = frozenset(subset)
                 consequent = itemset - frozenset(subset)
-                rule_measure = getattr(self, self.rule_measure, self.confidence)(
-                    antecedent, consequent, transactions
+                rule_measure = self.rule_measure.calculate(
+                    antecedent, consequent, transactions, self.itemset_measure
                 )
 
                 if rule_measure >= minconf:
@@ -129,9 +116,12 @@ class RuleGenerator(metaclass=ABCMeta):
                             antecedent=antecedent,
                             consequent=consequent,
                             itemset_measure=dict(
-                                name=self.itemset_measure, value=round(itemset_measure, 3)
+                                name=type(self.itemset_measure).__name__,
+                                value=round(itemset_measure, 3),
                             ),
-                            rule_measure=dict(name=self.rule_measure, value=round(rule_measure, 3)),
+                            rule_measure=dict(
+                                name=type(self.rule_measure).__name__, value=round(rule_measure, 3)
+                            ),
                         )
                     )
         return self._rules
