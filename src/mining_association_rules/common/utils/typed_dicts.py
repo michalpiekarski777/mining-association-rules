@@ -10,4 +10,4 @@ class AssociationRule(TypedDict):
     antecedent: frozenset[str]
     consequent: frozenset[str]
     itemset_measure: Measure
-    rule_measure: Measure
+    rule_measures: list[Measure]

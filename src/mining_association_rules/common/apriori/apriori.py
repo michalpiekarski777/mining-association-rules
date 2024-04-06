@@ -19,7 +19,7 @@ class RuleGenerator(metaclass=ABCMeta):
     def _initialize_logger(self) -> logging.Logger:
         file_name = datetime.now().strftime("%Y%m%d_%H%M_%s")
         handler = logging.FileHandler(Path(ROOT_DIR) / "logs" / file_name)
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger("Rules")
         logger.addHandler(handler)
         logger.info(f"Generating association rules for source {self._source}")
         return logger
@@ -29,11 +29,11 @@ class RuleGenerator(metaclass=ABCMeta):
         runner: str,
         source: str,
         itemset_measure: type[Measure],
-        rule_measure: type[Measure],
+        rule_measures: list[type[Measure]],
     ):
         self.start = time.perf_counter()
         self.itemset_measure = itemset_measure()
-        self.rule_measure = rule_measure()
+        self.rule_measures = [rule_measure() for rule_measure in rule_measures]
         self._runner = runner
         self._source = source
         self._rules: list[AssociationRule] = []
@@ -46,22 +46,34 @@ class RuleGenerator(metaclass=ABCMeta):
         self._logger.info(
             f"Rules generated using {self._runner} database in {self.total_duration} seconds"
         )
+        itemset_measure_name = type(self.itemset_measure).__name__
+        itemset_measure_count = self.itemset_measure.calculations_count
+        itemset_measure_time = self.itemset_measure.calculations_time
         self._logger.info(
-            f"Calculating {type(self.itemset_measure).__name__} was done {self.itemset_measure.calculations_count} and took {self.itemset_measure.calculations_time}"
+            f"Calculating {itemset_measure_name} was done {itemset_measure_count} and took {itemset_measure_time}"
         )
-        self._logger.info(
-            f"""
-            Calculating {type(self.rule_measure).__name__} was done {self.rule_measure.calculations_count} and took {self.rule_measure.calculations_time}
-            """
-        )
+        for rule_measure in self.rule_measures:
+            rule_measure_name = type(rule_measure).__name__
+            rule_measure_count = rule_measure.calculations_count
+            rule_measure_time = rule_measure.calculations_time
+            self._logger.info(
+                f"""
+                Calculating {rule_measure_name} was done {rule_measure_count} and took {rule_measure_time}
+                """
+            )
         self._logger.info(f"Found {len(self._rules)} rules")
         for rule in self._rules:
-            rule_members = f"Association rule {rule['antecedent']} -> {rule['consequent']},"
-            itemset_measure = (
+            rule_members = (
+                f"Association rule {set(rule['antecedent'])} -> {set(rule['consequent'])},"
+            )
+            itemset_measure_log = (
                 f"{rule['itemset_measure']['name']}: {rule['itemset_measure']['value']}"
             )
-            rule_measure = f"{rule['rule_measure']['name']}: {rule['rule_measure']['value']}"
-            metrics = itemset_measure + "," + rule_measure
+            rule_measure_log = ""
+            for rule_measure in rule["rule_measures"]:
+                rule_measure_log += f"{rule_measure['name']}: {round(rule_measure['value'], 3)}, "
+
+            metrics = itemset_measure_log + "," + rule_measure_log
             self._logger.info(rule_members + metrics)
 
     @abstractmethod
@@ -106,11 +118,13 @@ class RuleGenerator(metaclass=ABCMeta):
                 itemset_measure = self.itemset_measure.calculate(itemset, transactions)
                 antecedent = frozenset(subset)
                 consequent = itemset - frozenset(subset)
-                rule_measure = self.rule_measure.calculate(
-                    antecedent, consequent, transactions, self.itemset_measure
-                )
+                rule_measures = {}
+                for rule_measure in self.rule_measures:
+                    rule_measures[type(rule_measure).__name__] = rule_measure.calculate(
+                        antecedent, consequent, transactions
+                    )
 
-                if rule_measure >= minconf:
+                if rule_measures["Confidence"] >= minconf:
                     self._rules.append(
                         dict(
                             antecedent=antecedent,
@@ -119,9 +133,10 @@ class RuleGenerator(metaclass=ABCMeta):
                                 name=type(self.itemset_measure).__name__,
                                 value=round(itemset_measure, 3),
                             ),
-                            rule_measure=dict(
-                                name=type(self.rule_measure).__name__, value=round(rule_measure, 3)
-                            ),
+                            rule_measures=[
+                                dict(name=name, value=value)
+                                for name, value in rule_measures.items()
+                            ],
                         )
                     )
         return self._rules

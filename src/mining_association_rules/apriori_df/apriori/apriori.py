@@ -3,7 +3,6 @@ import time
 
 import pandas as pd
 
-from src.mining_association_rules.apriori_df.interest_measures import Confidence, Support
 from src.mining_association_rules.apriori_df.interest_measures.base import Measure
 from src.mining_association_rules.common.apriori.apriori import RuleGenerator
 from src.mining_association_rules.common.utils import consts
@@ -15,32 +14,14 @@ logger = logging.getLogger(__name__)
 
 
 class DataFrameRuleGenerator(RuleGenerator):
-    itemset_measures = ["support"]
-    rule_measures = [
-        "confidence",
-        "anti_support",
-        "lift",
-        "conviction",
-        "rule_interest_function",
-        "gain_function",
-        "dependency_factor",
-    ]
-
-    def __init__(self, source: str, itemset_measure: type[Measure], rule_measure: type[Measure]):
+    def __init__(
+        self, source: str, itemset_measure: type[Measure], rule_measures: list[type[Measure]]
+    ):
         self.supports: dict[frozenset[str], float] = {}
         self.support_counts: dict[frozenset[str], float] = {}
         super().__init__(
-            runner="df", source=source, itemset_measure=itemset_measure, rule_measure=rule_measure
+            runner="df", source=source, itemset_measure=itemset_measure, rule_measures=rule_measures
         )
-        if itemset_measure not in self.itemset_measures:
-            self._logger.warning(
-                f"Itemset measure {itemset_measure} not implemented, using support"
-            )
-            self.itemset_measure = Support()
-
-        if rule_measure not in self.rule_measures:
-            self._logger.warning(f"Rule measure {rule_measure} not implemented, using confidence")
-            self.rule_measure = Confidence()
 
     def truncate_infrequent(self, df: pd.DataFrame, minsup: float) -> pd.DataFrame:
         if df.empty is True:

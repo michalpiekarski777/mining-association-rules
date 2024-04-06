@@ -8,18 +8,15 @@ from src.mining_association_rules.apriori_df.interest_measures.support import Su
 
 class Confidence(Measure):
     def __init__(self):
+        self._support = Support()
         super().__init__()
 
     def calculate(
-        self,
-        antecedent: frozenset[str],
-        consequent: frozenset[str],
-        df: pd.DataFrame,
-        support: Support,
+        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
     ) -> float:
         start = time.perf_counter()
-        rule_support = support.calculate(antecedent | consequent, df)
-        antecedent_support = support.calculate(antecedent, df)
+        rule_support = self._support.calculate(antecedent | consequent, df)
+        antecedent_support = self._support.calculate(antecedent, df)
         confidence = rule_support / antecedent_support
         self.calculations_time += time.perf_counter() - start
         self.calculations_count += 1
