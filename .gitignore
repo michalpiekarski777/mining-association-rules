@@ -3,3 +3,4 @@ venv/
 sources/raw/raw-data.csv
 dist/
 logs/
+__pycache__/
