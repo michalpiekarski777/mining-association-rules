@@ -9,8 +9,7 @@ import pandas as pd
 
 from config import ROOT_DIR
 from src.mining_association_rules.apriori_df.interest_measures import *  # noqa: F401, F403
-from src.mining_association_rules.common.utils import consts
-from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
+from src.mining_association_rules.common.utils.typed_dicts import AssociationRule, MeasureThreshold
 
 
 class RuleGenerator(metaclass=ABCMeta):
@@ -25,13 +24,19 @@ class RuleGenerator(metaclass=ABCMeta):
         return logger
 
     def __init__(
-        self, runner: str, source: str, itemset_measures: list[str], rule_measures: list[str]
+        self,
+        runner: str,
+        source: str,
+        itemset_measures: list[str],
+        rule_measures: list[MeasureThreshold],
     ):
         self.start = time.perf_counter()
         self.itemset_measures = [
             globals()[itemset_measure]() for itemset_measure in itemset_measures
         ]
-        self.rule_measures = [globals()[rule_measure]() for rule_measure in rule_measures]
+        self.rule_measures = {
+            globals()[measure](): threshold for measure, threshold in rule_measures.items()
+        }
         self._runner = runner
         self._source = source
         self._rules: list[AssociationRule] = []
@@ -97,7 +102,6 @@ class RuleGenerator(metaclass=ABCMeta):
         self,
         frequent_itemsets: list[frozenset[str]],
         transactions: pd.DataFrame | list[set],
-        minconf: float = consts.CONFIDENCE_THRESHOLD,
     ) -> list[AssociationRule]:
         """
         For each frequent itemsts find not empty subsets subLi, so the support of Li divided by support of subLi is
@@ -113,12 +117,12 @@ class RuleGenerator(metaclass=ABCMeta):
                 antecedent = frozenset(subset)
                 consequent = itemset - frozenset(subset)
                 rule_measures = {}
-                for rule_measure in self.rule_measures:
-                    rule_measures[type(rule_measure).__name__] = rule_measure.calculate(
-                        antecedent, consequent, transactions
-                    )
+                for measure, threshold in self.rule_measures.items():
+                    value = measure.calculate(antecedent, consequent, transactions)
+                    if value > threshold:
+                        rule_measures[measure] = value
 
-                if rule_measures["Confidence"] >= minconf:
+                if len(rule_measures) == len(self.rule_measures):
                     self._rules.append(
                         dict(
                             antecedent=antecedent,
@@ -128,7 +132,7 @@ class RuleGenerator(metaclass=ABCMeta):
                                 value=round(itemset_measure, 3),
                             ),
                             rule_measures=[
-                                dict(name=name, value=value)
+                                dict(name=type(name).__name__, value=value)
                                 for name, value in rule_measures.items()
                             ],
                         )

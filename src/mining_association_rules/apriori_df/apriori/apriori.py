@@ -6,14 +6,19 @@ import pandas as pd
 from src.mining_association_rules.common.apriori.apriori import RuleGenerator
 from src.mining_association_rules.common.utils import consts
 from src.mining_association_rules.common.utils.exceptions import EmptyTransactionBaseException
-from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
+from src.mining_association_rules.common.utils.typed_dicts import AssociationRule, MeasureThreshold
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
 class DataFrameRuleGenerator(RuleGenerator):
-    def __init__(self, source: str, itemset_measures: list[str], rule_measures: list[str]):
+    def __init__(
+        self,
+        source: str,
+        itemset_measures: list[MeasureThreshold],
+        rule_measures: list[MeasureThreshold],
+    ):
         self.supports: dict[frozenset[str], float] = {}
         self.support_counts: dict[frozenset[str], float] = {}
         super().__init__(

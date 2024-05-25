@@ -1,6 +1,11 @@
 from typing import TypedDict
 
 
+class MeasureThreshold(TypedDict):
+    measure: str
+    threshold: float
+
+
 class Measure(TypedDict):
     name: str
     value: float
