@@ -4,3 +4,5 @@ sources/raw/raw-data.csv
 dist/
 logs/
 __pycache__/
+notebooks/
+.ipynb_checkpoints/

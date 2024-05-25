@@ -3,7 +3,6 @@ import time
 
 import pandas as pd
 
-from src.mining_association_rules.apriori_df.interest_measures.base import Measure
 from src.mining_association_rules.common.apriori.apriori import RuleGenerator
 from src.mining_association_rules.common.utils import consts
 from src.mining_association_rules.common.utils.exceptions import EmptyTransactionBaseException
@@ -14,13 +13,14 @@ logger = logging.getLogger(__name__)
 
 
 class DataFrameRuleGenerator(RuleGenerator):
-    def __init__(
-        self, source: str, itemset_measure: type[Measure], rule_measures: list[type[Measure]]
-    ):
+    def __init__(self, source: str, itemset_measures: list[str], rule_measures: list[str]):
         self.supports: dict[frozenset[str], float] = {}
         self.support_counts: dict[frozenset[str], float] = {}
         super().__init__(
-            runner="df", source=source, itemset_measure=itemset_measure, rule_measures=rule_measures
+            runner="df",
+            source=source,
+            itemset_measures=itemset_measures,
+            rule_measures=rule_measures,
         )
 
     def truncate_infrequent(self, df: pd.DataFrame, minsup: float) -> pd.DataFrame:
@@ -62,7 +62,7 @@ class DataFrameRuleGenerator(RuleGenerator):
             itemsets = [
                 candidate
                 for candidate in candidates
-                if self.itemset_measure.calculate(candidate, df) >= minsup
+                if self.itemset_measures[0].calculate(candidate, df) >= minsup
             ]
             self._logger.info(f"{i} elements frequent itemsets {len(itemsets)}")
             frequent_itemsets.extend(itemsets)

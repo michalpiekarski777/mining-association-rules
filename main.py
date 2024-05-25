@@ -7,18 +7,6 @@ import pandas as pd
 
 from config import ROOT_DIR
 from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRuleGenerator
-from src.mining_association_rules.apriori_df.interest_measures.anti_support import AntiSupport
-from src.mining_association_rules.apriori_df.interest_measures.confidence import Confidence
-from src.mining_association_rules.apriori_df.interest_measures.conviction import Conviction
-from src.mining_association_rules.apriori_df.interest_measures.dependency_factor import (
-    DependencyFactor,
-)
-from src.mining_association_rules.apriori_df.interest_measures.gain_function import GainFunction
-from src.mining_association_rules.apriori_df.interest_measures.lift import Lift
-from src.mining_association_rules.apriori_df.interest_measures.rule_interest_function import (
-    RuleInterestFunction,
-)
-from src.mining_association_rules.apriori_df.interest_measures.support import Support
 from src.mining_association_rules.apriori_list.apriori.apriori import ListRuleGenerator
 from src.mining_association_rules.common.utils.enums import RunnerType
 from src.mining_association_rules.common.utils.read_csv import read_transactions_shop
@@ -38,26 +26,45 @@ def parse_args() -> argparse.Namespace:
         "--file",
         required=True,
         type=str,
-        help="Name of Parquet file placed in sources directory",
+        help="Name of CSV or Parquet file placed in sources directory",
     )
-    parser.add_argument("-r", "--runner", default="df", choices=["df", "list"])
+    parser.add_argument(
+        "-i",
+        "--itemset_measures",
+        default=["Support"],
+        type=str,
+        nargs="*",
+        help="List of interest measures used to generate frequent itemsets",
+        choices=["Support"],
+    )
+    parser.add_argument(
+        "-r",
+        "--rule_measures",
+        default=["Confidence"],
+        type=str,
+        nargs="*",
+        help="List of interest measured used to generate strong association rules",
+        choices=[
+            "AntiSupport",
+            "Confidence",
+            "Conviction",
+            "DependencyFactor",
+            "GainFunction",
+            "Lift",
+            "RuleInterestFunction",
+        ],
+    )
+    parser.add_argument("-b", "--backend", default="df", choices=["df", "list"])
     return parser.parse_args()
 
 
-def prepare_df_gen(source: str) -> tuple[DataFrameRuleGenerator, dict]:
-    df = pd.read_parquet(Path(ROOT_DIR) / "sources" / source)
+def prepare_df_gen(
+    source: str, itemset_measures: list[str], rule_measures: list[str]
+) -> tuple[DataFrameRuleGenerator, dict]:
+    path = Path(ROOT_DIR) / "sources" / source
+    df = pd.read_csv(path) if source.endswith(".csv") else pd.read_parquet(path)
     rule_gen = DataFrameRuleGenerator(
-        source=source,
-        itemset_measure=Support,
-        rule_measures=[
-            AntiSupport,
-            Confidence,
-            Conviction,
-            DependencyFactor,
-            GainFunction,
-            Lift,
-            RuleInterestFunction,
-        ],
+        source=source, itemset_measures=itemset_measures, rule_measures=rule_measures
     )
     kwargs = dict(transactions=df)
     return rule_gen, kwargs
@@ -74,9 +81,9 @@ def prepare_list_gen(source: str) -> tuple[ListRuleGenerator, dict]:
 def main():
     args = parse_args()
 
-    if args.runner == RunnerType.DATAFRAME.value:
-        rule_gen, kwargs = prepare_df_gen(args.file)
-    elif args.runner == RunnerType.LIST.value:
+    if args.backend == RunnerType.DATAFRAME:
+        rule_gen, kwargs = prepare_df_gen(args.file, args.itemset_measures, args.rule_measures)
+    elif args.backend == RunnerType.LIST:
         rule_gen, kwargs = prepare_list_gen(args.file)
     else:
         sys.exit("Invalid runner")

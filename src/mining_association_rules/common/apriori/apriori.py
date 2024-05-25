@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 
 from config import ROOT_DIR
-from src.mining_association_rules.apriori_df.interest_measures.base import Measure
+from src.mining_association_rules.apriori_df.interest_measures import *  # noqa: F401, F403
 from src.mining_association_rules.common.utils import consts
 from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
 
@@ -25,15 +25,13 @@ class RuleGenerator(metaclass=ABCMeta):
         return logger
 
     def __init__(
-        self,
-        runner: str,
-        source: str,
-        itemset_measure: type[Measure],
-        rule_measures: list[type[Measure]],
+        self, runner: str, source: str, itemset_measures: list[str], rule_measures: list[str]
     ):
         self.start = time.perf_counter()
-        self.itemset_measure = itemset_measure()
-        self.rule_measures = [rule_measure() for rule_measure in rule_measures]
+        self.itemset_measures = [
+            globals()[itemset_measure]() for itemset_measure in itemset_measures
+        ]
+        self.rule_measures = [globals()[rule_measure]() for rule_measure in rule_measures]
         self._runner = runner
         self._source = source
         self._rules: list[AssociationRule] = []
@@ -46,22 +44,21 @@ class RuleGenerator(metaclass=ABCMeta):
         self._logger.info(
             f"Rules generated using {self._runner} database in {self.total_duration} seconds"
         )
-        itemset_measure_name = type(self.itemset_measure).__name__
-        itemset_measure_count = self.itemset_measure.calculations_count
-        itemset_measure_time = self.itemset_measure.calculations_time
-        self._logger.info(
-            f"Calculating {itemset_measure_name} was done {itemset_measure_count} and took {itemset_measure_time}"
-        )
+        for itemset_measure in self.itemset_measures:
+            itemset_measure_name = type(itemset_measure).__name__
+            itemset_measure_count = itemset_measure.calculations_count
+            itemset_measure_time = itemset_measure.calculations_time
+            log = f"Calculating {itemset_measure_name} was done {itemset_measure_count} and took {itemset_measure_time}"
+            self._logger.info(log)
+
         for rule_measure in self.rule_measures:
             rule_measure_name = type(rule_measure).__name__
             rule_measure_count = rule_measure.calculations_count
             rule_measure_time = rule_measure.calculations_time
-            self._logger.info(
-                f"""
-                Calculating {rule_measure_name} was done {rule_measure_count} and took {rule_measure_time}
-                """
-            )
+            log = f"Calculating {rule_measure_name} was done {rule_measure_count} and took {rule_measure_time}"
+            self._logger.info(log)
         self._logger.info(f"Found {len(self._rules)} rules")
+
         for rule in self._rules:
             rule_members = (
                 f"Association rule {set(rule['antecedent'])} -> {set(rule['consequent'])},"
@@ -80,10 +77,7 @@ class RuleGenerator(metaclass=ABCMeta):
     def generate_strong_association_rules(self, *args, **kwargs) -> list[AssociationRule]:
         raise NotImplementedError
 
-    def _apriori_gen(
-        self,
-        itemsets: list[frozenset[str]],
-    ) -> list[frozenset[str]]:
+    def _apriori_gen(self, itemsets: list[frozenset[str]]) -> list[frozenset[str]]:
         """
         Returns list of k-element candidate itemsets
         :param elements:
@@ -115,7 +109,7 @@ class RuleGenerator(metaclass=ABCMeta):
         """
         for itemset in frequent_itemsets:
             for subset in self._generate_subset_combinations(itemset):
-                itemset_measure = self.itemset_measure.calculate(itemset, transactions)
+                itemset_measure = self.itemset_measures[0].calculate(itemset, transactions)
                 antecedent = frozenset(subset)
                 consequent = itemset - frozenset(subset)
                 rule_measures = {}
@@ -130,7 +124,7 @@ class RuleGenerator(metaclass=ABCMeta):
                             antecedent=antecedent,
                             consequent=consequent,
                             itemset_measure=dict(
-                                name=type(self.itemset_measure).__name__,
+                                name=type(self.itemset_measures[0]).__name__,
                                 value=round(itemset_measure, 3),
                             ),
                             rule_measures=[
