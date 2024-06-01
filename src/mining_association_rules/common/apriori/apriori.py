@@ -27,16 +27,14 @@ class RuleGenerator(metaclass=ABCMeta):
         self,
         runner: str,
         source: str,
-        itemset_measures: list[str],
-        rule_measures: list[MeasureThreshold],
+        itemset_measures: MeasureThreshold,
+        rule_measures: MeasureThreshold,
     ):
         self.start = time.perf_counter()
-        self.itemset_measures = [
-            globals()[itemset_measure]() for itemset_measure in itemset_measures
-        ]
-        self.rule_measures = {
-            globals()[measure](): threshold for measure, threshold in rule_measures.items()
+        self.itemset_measures = {
+            measure(): threshold for measure, threshold in itemset_measures.items()
         }
+        self.rule_measures = {measure(): threshold for measure, threshold in rule_measures.items()}
         self._runner = runner
         self._source = source
         self._rules: list[AssociationRule] = []
@@ -111,9 +109,12 @@ class RuleGenerator(metaclass=ABCMeta):
         :param minconf:
         :return:
         """
+        minsup = list(self.itemset_measures.values())[0]
         for itemset in frequent_itemsets:
             for subset in self._generate_subset_combinations(itemset):
-                itemset_measure = self.itemset_measures[0].calculate(itemset, transactions)
+                itemset_measure = list(self.itemset_measures.keys())[0].calculate(
+                    itemset, transactions, minsup
+                )
                 antecedent = frozenset(subset)
                 consequent = itemset - frozenset(subset)
                 rule_measures = {}
@@ -128,7 +129,7 @@ class RuleGenerator(metaclass=ABCMeta):
                             antecedent=antecedent,
                             consequent=consequent,
                             itemset_measure=dict(
-                                name=type(self.itemset_measures[0]).__name__,
+                                name=type(list(self.itemset_measures.keys())[0]).__name__,
                                 value=round(itemset_measure, 3),
                             ),
                             rule_measures=[

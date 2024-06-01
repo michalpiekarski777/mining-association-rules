@@ -7,8 +7,13 @@ import pandas as pd
 
 from config import ROOT_DIR
 from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRuleGenerator
+from src.mining_association_rules.apriori_df.interest_measures.base import Measure
 from src.mining_association_rules.apriori_list.apriori.apriori import ListRuleGenerator
 from src.mining_association_rules.common.utils.enums import RunnerType
+from src.mining_association_rules.common.utils.measures import (
+    interest_measures_classes,
+    rule_measures_classes,
+)
 from src.mining_association_rules.common.utils.read_csv import read_transactions_shop
 from src.mining_association_rules.common.utils.runners import run
 from src.mining_association_rules.common.utils.typed_dicts import MeasureThreshold
@@ -36,7 +41,6 @@ def parse_args() -> argparse.Namespace:
         type=str,
         nargs="*",
         help="List of interest measures used to generate frequent itemsets",
-        # choices=["Support"],
     )
     parser.add_argument(
         "-r",
@@ -45,41 +49,40 @@ def parse_args() -> argparse.Namespace:
         type=str,
         nargs="*",
         help="List of interest measured used to generate strong association rules",
-        # choices=[
-        #     "AntiSupport",
-        #     "Confidence",
-        #     "Conviction",
-        #     "DependencyFactor",
-        #     "GainFunction",
-        #     "Lift",
-        #     "RuleInterestFunction",
-        # ],
     )
     parser.add_argument("-b", "--backend", default="df", choices=["df", "list"])
     args = parser.parse_args()
     args.itemset_measures = {
-        parse_measures_threshold(measure)[0]: parse_measures_threshold(measure)[1]
+        parse_measures_threshold(measure, interest_measures_classes)[0]: parse_measures_threshold(
+            measure, interest_measures_classes
+        )[1]
         for measure in args.itemset_measures
     }
     args.rule_measures = {
-        parse_measures_threshold(measure)[0]: parse_measures_threshold(measure)[1]
+        parse_measures_threshold(measure, rule_measures_classes)[0]: parse_measures_threshold(
+            measure, rule_measures_classes
+        )[1]
         for measure in args.rule_measures
     }
     return args
 
 
-def parse_measures_threshold(value: str) -> tuple[str, float]:
+def parse_measures_threshold(value: str, measure_classes: dict) -> tuple[Measure, float]:
     try:
         measure, threshold = value.split("=")
-        return measure, float(threshold)
+        return measure_classes[measure], float(threshold)
     except ValueError:
         raise argparse.ArgumentTypeError(
             f"Invalid format for metric and threshold: '{value}'. Expected format is metric=threshold."
         )
+    except KeyError:
+        raise argparse.ArgumentTypeError(
+            f"Metric value {value.split("=")[0]} is not available in {list(measure_classes.keys())}"
+        )
 
 
 def prepare_df_gen(
-    source: str, itemset_measures: list[MeasureThreshold], rule_measures: list[MeasureThreshold]
+    source: str, itemset_measures: MeasureThreshold, rule_measures: MeasureThreshold
 ) -> tuple[DataFrameRuleGenerator, dict]:
     path = Path(ROOT_DIR) / "sources" / source
     df = pd.read_csv(path) if source.endswith(".csv") else pd.read_parquet(path)

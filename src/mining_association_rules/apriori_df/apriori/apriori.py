@@ -16,8 +16,8 @@ class DataFrameRuleGenerator(RuleGenerator):
     def __init__(
         self,
         source: str,
-        itemset_measures: list[MeasureThreshold],
-        rule_measures: list[MeasureThreshold],
+        itemset_measures: MeasureThreshold,
+        rule_measures: MeasureThreshold,
     ):
         self.supports: dict[frozenset[str], float] = {}
         self.support_counts: dict[frozenset[str], float] = {}
@@ -53,6 +53,7 @@ class DataFrameRuleGenerator(RuleGenerator):
         :param minsup: minimum support threshold
         :return: list of subsets of elements universe
         """
+        minsup = list(self.itemset_measures.values())[0]
         frequent_itemsets = []
         start = time.perf_counter()
         df = self.truncate_infrequent(df, minsup)
@@ -67,7 +68,7 @@ class DataFrameRuleGenerator(RuleGenerator):
             itemsets = [
                 candidate
                 for candidate in candidates
-                if self.itemset_measures[0].calculate(candidate, df) >= minsup
+                if list(self.itemset_measures.keys())[0].calculate(candidate, df, minsup) >= minsup
             ]
             self._logger.info(f"{i} elements frequent itemsets {len(itemsets)}")
             frequent_itemsets.extend(itemsets)
