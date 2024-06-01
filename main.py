@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 import sys
 from pathlib import Path
@@ -28,16 +29,21 @@ def parse_args() -> argparse.Namespace:
         description="Generator of association rules from your dataset",
     )
     parser.add_argument(
+        "-c",
+        "--config",
+        type=str,
+        help="Path to json config file containing file, itemset_measures and rule_measures fields",
+    )
+    parser.add_argument(
         "-f",
         "--file",
-        required=True,
         type=str,
         help="Name of CSV or Parquet file placed in sources directory",
     )
     parser.add_argument(
         "-i",
         "--itemset_measures",
-        default=["Support"],
+        default=["support=0.1"],
         type=str,
         nargs="*",
         help="List of interest measures used to generate frequent itemsets",
@@ -45,25 +51,43 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "-r",
         "--rule_measures",
-        default=["Confidence"],
+        default=["confidence=0.1"],
         type=str,
         nargs="*",
         help="List of interest measured used to generate strong association rules",
     )
     parser.add_argument("-b", "--backend", default="df", choices=["df", "list"])
     args = parser.parse_args()
-    args.itemset_measures = {
-        parse_measures_threshold(measure, interest_measures_classes)[0]: parse_measures_threshold(
-            measure, interest_measures_classes
-        )[1]
-        for measure in args.itemset_measures
-    }
-    args.rule_measures = {
-        parse_measures_threshold(measure, rule_measures_classes)[0]: parse_measures_threshold(
-            measure, rule_measures_classes
-        )[1]
-        for measure in args.rule_measures
-    }
+
+    if not args.config and not args.file:
+        raise argparse.ArgumentTypeError("Either config or file argument required")
+
+    if args.config:
+        with open(args.config, "r") as f:
+            config = json.load(f)
+            args.file = config["file"]
+            args.itemset_measures = {
+                interest_measures_classes[measure]: threshold
+                for measure, threshold in config["itemset_measures"].items()
+            }
+            args.rule_measures = {
+                rule_measures_classes[measure]: threshold
+                for measure, threshold in config["rule_measures"].items()
+            }
+
+    else:
+        args.itemset_measures = {
+            parse_measures_threshold(measure, interest_measures_classes)[
+                0
+            ]: parse_measures_threshold(measure, interest_measures_classes)[1]
+            for measure in args.itemset_measures
+        }
+        args.rule_measures = {
+            parse_measures_threshold(measure, rule_measures_classes)[0]: parse_measures_threshold(
+                measure, rule_measures_classes
+            )[1]
+            for measure in args.rule_measures
+        }
     return args
 
 

@@ -117,13 +117,13 @@ class RuleGenerator(metaclass=ABCMeta):
                 )
                 antecedent = frozenset(subset)
                 consequent = itemset - frozenset(subset)
-                rule_measures = {}
+                threshold_meeting_measures = {}
                 for measure, threshold in self.rule_measures.items():
                     value = measure.calculate(antecedent, consequent, transactions)
                     if value > threshold:
-                        rule_measures[measure] = value
+                        threshold_meeting_measures[measure] = value
 
-                if len(rule_measures) == len(self.rule_measures):
+                if len(threshold_meeting_measures) == len(self.rule_measures):
                     self._rules.append(
                         dict(
                             antecedent=antecedent,
@@ -134,7 +134,7 @@ class RuleGenerator(metaclass=ABCMeta):
                             ),
                             rule_measures=[
                                 dict(name=type(name).__name__, value=value)
-                                for name, value in rule_measures.items()
+                                for name, value in threshold_meeting_measures.items()
                             ],
                         )
                     )
