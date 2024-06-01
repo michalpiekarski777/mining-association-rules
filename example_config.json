@@ -1,11 +1,10 @@
 {
   "file": "survey.parquet",
   "itemset_measures": {
-    "support": 0.75
+    "support": 0.3
   },
   "rule_measures": {
-    "confidence": 0.5,
-    "dependency_factor": 0,
-    "lift": 1
+    "confidence": 0.7,
+    "hyperconfidence": 0.99
   }
 }

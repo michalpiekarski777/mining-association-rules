@@ -4,6 +4,8 @@ from src.mining_association_rules.apriori_df.interest_measures import (
     Conviction,
     DependencyFactor,
     GainFunction,
+    HyperConfidence,
+    HyperLift,
     Lift,
     RuleInterestFunction,
     Support,
@@ -19,4 +21,6 @@ rule_measures_classes = {
     "gain_function": GainFunction,
     "lift": Lift,
     "rule_interest_function": RuleInterestFunction,
+    "hyperconfidence": HyperConfidence,
+    "hyperlift": HyperLift,
 }
