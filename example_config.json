@@ -1,10 +1,9 @@
 {
-  "file": "survey.parquet",
+  "file": "validated_survey.parquet",
   "itemset_measures": {
     "support": 0.3
   },
   "rule_measures": {
-    "confidence": 0.7,
-    "hyperconfidence": 0.99
+    "confidence": 0.7
   }
 }
