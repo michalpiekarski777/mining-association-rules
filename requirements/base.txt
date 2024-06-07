@@ -1,2 +1,3 @@
 pandas==2.2.1  # https://pandas.pydata.org/
 pyarrow==15.0.2  # https://arrow.apache.org/
+scipy==1.13.1  # https://github.com/scipy/scipy

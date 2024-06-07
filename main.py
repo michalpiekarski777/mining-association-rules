@@ -101,7 +101,7 @@ def parse_measures_threshold(value: str, measure_classes: dict) -> tuple[Measure
         )
     except KeyError:
         raise argparse.ArgumentTypeError(
-            f"Metric value {value.split("=")[0]} is not available in {list(measure_classes.keys())}"
+            f"Metric value {value.split('=')[0]} is not available in {list(measure_classes.keys())}"
         )
 
 

@@ -6,9 +6,9 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mining-association-rules"
-version = "0.0.1"
+version = "0.1.0"
 dynamic = ["dependencies", "optional-dependencies"]
-requires-python = ">= 3.8"
+requires-python = ">= 3.11"
 authors = [
     {name = "Michał Piekarski", email = "egzosted@gmail.com"}
 ]
