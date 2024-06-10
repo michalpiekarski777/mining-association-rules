@@ -26,9 +26,9 @@ class RuleGenerator(metaclass=ABCMeta):
     def __init__(
         self,
         runner: str,
-        source: str,
         itemset_measures: MeasureThreshold,
         rule_measures: MeasureThreshold,
+        source: str = "",
     ):
         self.start = time.perf_counter()
         self.itemset_measures = {

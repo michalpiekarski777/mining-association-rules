@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 class DataFrameRuleGenerator(RuleGenerator):
     def __init__(
         self,
-        source: str,
         itemset_measures: MeasureThreshold,
         rule_measures: MeasureThreshold,
+        source: str = "",
     ):
         self.supports: dict[frozenset[str], float] = {}
         self.support_counts: dict[frozenset[str], float] = {}
