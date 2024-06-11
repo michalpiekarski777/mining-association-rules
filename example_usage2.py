@@ -1,14 +1,10 @@
-from pathlib import Path
-
-import pandas as pd
-
-from config import ROOT_DIR
 from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRuleGenerator
 from src.mining_association_rules.apriori_df.interest_measures import (
     Confidence,
     HyperConfidence,
     Support,
 )
+from src.mining_association_rules.common.utils.csv_to_df import convert_dataset_to_dataframe
 
 # convert your dataset to required format
 elements = ["cola", "peanuts", "diapers", "beer"]
@@ -19,8 +15,7 @@ transactions = [
     ["cola", "peanuts", "beer"],
     ["peanuts", "diapers", "beer"],
 ]
-path = Path(ROOT_DIR) / "sources" / "survey.parquet"
-df = pd.read_parquet(path)
+df = convert_dataset_to_dataframe(elements, transactions)
 # specify measures used during the processing with its thresholds
 itemset_measures = {Support: 0.4}
 rule_measures = {Confidence: 0.2, HyperConfidence: 0.1}
