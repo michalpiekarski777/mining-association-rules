@@ -10,16 +10,25 @@ from src.mining_association_rules.common.utils.read_csv import (
 )
 
 
-def convert(elements, transactions, path, file_format):
+def convert_dataset_to_dataframe(elements: list, transactions: list[list[str]]) -> pd.DataFrame:
     df = pd.DataFrame(0, columns=list(elements), index=range(len(transactions)))
 
     for i, transaction in enumerate(transactions):
         df.loc[i, list(transaction)] = 1
 
+    return df
+
+
+def dump_dataframe(df, path, file_format):
     if file_format == "parquet":
         df.to_parquet(path)
     else:
         df.to_csv(path, index=False)
+
+
+def convert(elements, transactions, path, file_format):
+    df = convert_dataset_to_dataframe(elements, transactions)
+    dump_dataframe(df, path, file_format)
 
 
 def transform_groceries_dataset():

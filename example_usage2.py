@@ -10,12 +10,20 @@ from src.mining_association_rules.apriori_df.interest_measures import (
     Support,
 )
 
-# read dataset from file put in sources catalog
+# convert your dataset to required format
+elements = ["cola", "peanuts", "diapers", "beer"]
+transactions = [
+    ["cola", "peanuts"],
+    ["peanuts", "diapers", "beer"],
+    ["cola"],
+    ["cola", "peanuts", "beer"],
+    ["peanuts", "diapers", "beer"],
+]
 path = Path(ROOT_DIR) / "sources" / "survey.parquet"
 df = pd.read_parquet(path)
 # specify measures used during the processing with its thresholds
-itemset_measures = {Support: 0.7}
-rule_measures = {Confidence: 0.7, HyperConfidence: 0.9}
+itemset_measures = {Support: 0.4}
+rule_measures = {Confidence: 0.2, HyperConfidence: 0.1}
 # run algorithm
 rule_gen = DataFrameRuleGenerator(itemset_measures=itemset_measures, rule_measures=rule_measures)
 rules = rule_gen.generate_strong_association_rules(transactions=df)
