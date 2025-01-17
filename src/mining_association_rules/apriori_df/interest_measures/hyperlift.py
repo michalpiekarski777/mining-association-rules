@@ -24,7 +24,10 @@ class HyperLift(Measure):
         antecedent_support_count = self._support_count.calculate(antecedent, df)
         consequent_support_count = self._support_count.calculate(consequent, df)
         hyperlift = rule_support_count / hypergeom.ppf(
-            quantile, len(df), antecedent_support_count, consequent_support_count
+            quantile,
+            len(df),
+            antecedent_support_count,
+            consequent_support_count,
         )
         self.calculations_time += time.perf_counter() - start
         self.calculations_count += 1

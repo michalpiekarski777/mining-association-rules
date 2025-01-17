@@ -11,7 +11,8 @@ from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRul
 from src.mining_association_rules.apriori_df.interest_measures.base import Measure
 from src.mining_association_rules.apriori_list.apriori.apriori import ListRuleGenerator
 from src.mining_association_rules.common.utils.enums import RunnerType
-from src.mining_association_rules.common.utils.measures import interest_measures_classes, rule_measures_classes
+from src.mining_association_rules.common.utils.measures import interest_measures_classes
+from src.mining_association_rules.common.utils.measures import rule_measures_classes
 from src.mining_association_rules.common.utils.read_csv import read_transactions_shop
 from src.mining_association_rules.common.utils.runners import run
 from src.mining_association_rules.common.utils.typed_dicts import MeasureThreshold
@@ -57,10 +58,11 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
 
     if not args.config and not args.file:
-        raise argparse.ArgumentTypeError("Either config or file argument required")
+        msg = "Either config or file argument required"
+        raise argparse.ArgumentTypeError(msg)
 
     if args.config:
-        with open(args.config, "r") as f:
+        with Path.open(args.config) as f:
             config = json.load(f)
             args.file = config["file"]
             args.itemset_measures = {
@@ -74,13 +76,15 @@ def parse_args() -> argparse.Namespace:
     else:
         args.itemset_measures = {
             parse_measures_threshold(measure, interest_measures_classes)[0]: parse_measures_threshold(
-                measure, interest_measures_classes
+                measure,
+                interest_measures_classes,
             )[1]
             for measure in args.itemset_measures
         }
         args.rule_measures = {
             parse_measures_threshold(measure, rule_measures_classes)[0]: parse_measures_threshold(
-                measure, rule_measures_classes
+                measure,
+                rule_measures_classes,
             )[1]
             for measure in args.rule_measures
         }
@@ -92,22 +96,22 @@ def parse_measures_threshold(value: str, measure_classes: dict) -> tuple[Measure
         measure, threshold = value.split("=")
         return measure_classes[measure], float(threshold)
     except ValueError:
-        raise argparse.ArgumentTypeError(
-            f"Invalid format for metric and threshold: '{value}'. Expected format is metric=threshold."
-        )
+        msg = f"Invalid format for metric and threshold: '{value}'. Expected format is metric=threshold."
+        raise argparse.ArgumentTypeError(msg) from None
     except KeyError:
-        raise argparse.ArgumentTypeError(
-            f"Metric value {value.split('=')[0]} is not available in {list(measure_classes.keys())}"
-        )
+        msg = f"Metric value {value.split('=')[0]} is not available in {list(measure_classes.keys())}"
+        raise argparse.ArgumentTypeError(msg) from None
 
 
 def prepare_df_gen(
-    source: str, itemset_measures: MeasureThreshold, rule_measures: MeasureThreshold
+    source: str,
+    itemset_measures: MeasureThreshold,
+    rule_measures: MeasureThreshold,
 ) -> tuple[DataFrameRuleGenerator, dict]:
     path = Path(ROOT_DIR) / "sources" / source
     df = pd.read_csv(path) if source.endswith(".csv") else pd.read_parquet(path)
     rule_gen = DataFrameRuleGenerator(source=source, itemset_measures=itemset_measures, rule_measures=rule_measures)
-    kwargs = dict(transactions=df)
+    kwargs = {"transactions": df}
     return rule_gen, kwargs
 
 
@@ -115,7 +119,7 @@ def prepare_list_gen(source: str) -> tuple[ListRuleGenerator, dict]:
     path = Path(ROOT_DIR) / "sources" / source
     elements, transactions = read_transactions_shop(path)
     rule_gen = ListRuleGenerator(source=source)
-    kwargs = dict(transactions=transactions, elements=elements)
+    kwargs = {"elements": elements, "transactions": transactions}
     return rule_gen, kwargs
 
 

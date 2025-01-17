@@ -3,7 +3,7 @@ import string
 
 
 def generate_random_name(length) -> str:
-    return "".join(random.choice(string.ascii_letters) for _ in range(length))
+    return "".join(random.choice(string.ascii_letters) for _ in range(length))  # noqa: S311
 
 
 def generate_elements_and_transactions(
@@ -13,7 +13,7 @@ def generate_elements_and_transactions(
     elements = set()
 
     for _ in range(no_of_elements):
-        elements.add(generate_random_name(random.randint(4, 8)))
+        elements.add(generate_random_name(random.randint(4, 8)))  # noqa: S311
 
     transactions: list[set] = []
     to_df_transactions: list[dict] = []

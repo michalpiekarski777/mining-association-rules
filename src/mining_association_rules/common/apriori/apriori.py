@@ -1,12 +1,15 @@
 import time
-from abc import ABCMeta, abstractmethod
-from itertools import chain, combinations
+from abc import ABCMeta
+from abc import abstractmethod
+from itertools import chain
+from itertools import combinations
 
 import pandas as pd
 
-from src.mining_association_rules.apriori_df.interest_measures import *  # noqa: F401, F403
+from src.mining_association_rules.apriori_df.interest_measures import *  # noqa: F403
 from src.mining_association_rules.common.utils.loggers import Logger
-from src.mining_association_rules.common.utils.typed_dicts import AssociationRule, MeasureThreshold
+from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
+from src.mining_association_rules.common.utils.typed_dicts import MeasureThreshold
 
 
 class RuleGenerator(metaclass=ABCMeta):
@@ -27,13 +30,14 @@ class RuleGenerator(metaclass=ABCMeta):
         self._source = source
         self._rules: list[AssociationRule] = []
         self._logger = logger_class(name="Rules")
-        self._logger.info(f"Generating association rules for source {self._source}")
+        self._logger.info("Generating association rules for source %(source)s", {"source": self._source})
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self._logger.info(f"Rules generated using {self._runner} database in {self.total_duration} seconds")
+        log_info = {"runner": self._runner, "duration": self.total_duration}
+        self._logger.info("Rules generated using %(runner)s database in %(duration)s seconds", log_info)
         for itemset_measure in self.itemset_measures:
             itemset_measure_name = type(itemset_measure).__name__
             itemset_measure_count = itemset_measure.calculations_count
@@ -47,7 +51,7 @@ class RuleGenerator(metaclass=ABCMeta):
             rule_measure_time = rule_measure.calculations_time
             log = f"Calculating {rule_measure_name} was done {rule_measure_count} and took {rule_measure_time}"
             self._logger.info(log)
-        self._logger.info(f"Found {len(self._rules)} rules")
+        self._logger.info("Found %(total_rules)s rules", {"total_rules": len(self._rules)})
 
         for rule in self._rules:
             rule_members = f"Association rule {set(rule['antecedent'])} -> {set(rule['consequent'])},"
@@ -56,8 +60,8 @@ class RuleGenerator(metaclass=ABCMeta):
             for rule_measure in rule["rule_measures"]:
                 rule_measure_log += f"{rule_measure['name']}: {round(rule_measure['value'], 3)}, "
 
-            metrics = itemset_measure_log + "," + rule_measure_log
-            self._logger.info(rule_members + metrics)
+            msg = rule_members + itemset_measure_log + "," + rule_measure_log
+            self._logger.info(msg)
 
     @abstractmethod
     def generate_strong_association_rules(self, *args, **kwargs) -> list[AssociationRule]:
@@ -69,15 +73,15 @@ class RuleGenerator(metaclass=ABCMeta):
         :param elements:
         :return:
         """
-        candidates = []
         set_length = len(itemsets[0])
         sorted_itemsets = [sorted(itemset) for itemset in itemsets]
 
-        for index, (itemset, sorted_itemset) in enumerate(zip(itemsets, sorted_itemsets)):
-            for j in range(index + 1, len(itemsets)):
-                if sorted_itemset[: set_length - 1] == sorted_itemsets[j][: set_length - 1]:
-                    candidates.append(itemset.union(itemsets[j]))
-        return candidates
+        return [
+            itemset.union(itemsets[j])
+            for index, (itemset, sorted_itemset) in enumerate(zip(itemsets, sorted_itemsets, strict=False))
+            for j in range(index + 1, len(itemsets))
+            if sorted_itemset[: set_length - 1] == sorted_itemsets[j][: set_length - 1]
+        ]
 
     def _generate_association_rules(
         self,
@@ -92,10 +96,10 @@ class RuleGenerator(metaclass=ABCMeta):
         :param minconf:
         :return:
         """
-        minsup = list(self.itemset_measures.values())[0]
+        minsup = next(iter(self.itemset_measures.values()))
         for itemset in frequent_itemsets:
             for subset in self._generate_subset_combinations(itemset):
-                itemset_measure = list(self.itemset_measures.keys())[0].calculate(itemset, transactions, minsup)
+                itemset_measure = next(iter(self.itemset_measures.keys())).calculate(itemset, transactions, minsup)
                 antecedent = frozenset(subset)
                 consequent = itemset - frozenset(subset)
                 threshold_meeting_measures = {}
@@ -106,18 +110,18 @@ class RuleGenerator(metaclass=ABCMeta):
 
                 if len(threshold_meeting_measures) == len(self.rule_measures):
                     self._rules.append(
-                        dict(
-                            antecedent=antecedent,
-                            consequent=consequent,
-                            itemset_measure=dict(
-                                name=type(list(self.itemset_measures.keys())[0]).__name__,
-                                value=round(itemset_measure, 3),
-                            ),
-                            rule_measures=[
-                                dict(name=type(name).__name__, value=value)
+                        {
+                            "antecedent": antecedent,
+                            "consequent": consequent,
+                            "itemset_measure": {
+                                "name": type(next(iter(self.itemset_measures.keys()))).__name__,
+                                "value": round(itemset_measure, 3),
+                            },
+                            "rule_measures": [
+                                {"name": type(name).__name__, "value": value}
                                 for name, value in threshold_meeting_measures.items()
                             ],
-                        )
+                        },
                     )
         return self._rules
 

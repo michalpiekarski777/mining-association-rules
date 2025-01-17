@@ -1,15 +1,13 @@
-from src.mining_association_rules.apriori_df.interest_measures import (
-    AntiSupport,
-    Confidence,
-    Conviction,
-    DependencyFactor,
-    GainFunction,
-    HyperConfidence,
-    HyperLift,
-    Lift,
-    RuleInterestFunction,
-    Support,
-)
+from src.mining_association_rules.apriori_df.interest_measures import AntiSupport
+from src.mining_association_rules.apriori_df.interest_measures import Confidence
+from src.mining_association_rules.apriori_df.interest_measures import Conviction
+from src.mining_association_rules.apriori_df.interest_measures import DependencyFactor
+from src.mining_association_rules.apriori_df.interest_measures import GainFunction
+from src.mining_association_rules.apriori_df.interest_measures import HyperConfidence
+from src.mining_association_rules.apriori_df.interest_measures import HyperLift
+from src.mining_association_rules.apriori_df.interest_measures import Lift
+from src.mining_association_rules.apriori_df.interest_measures import RuleInterestFunction
+from src.mining_association_rules.apriori_df.interest_measures import Support
 
 interest_measures_classes = {"support": Support}
 

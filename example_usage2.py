@@ -1,5 +1,7 @@
 from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRuleGenerator
-from src.mining_association_rules.apriori_df.interest_measures import Confidence, HyperConfidence, Support
+from src.mining_association_rules.apriori_df.interest_measures import Confidence
+from src.mining_association_rules.apriori_df.interest_measures import HyperConfidence
+from src.mining_association_rules.apriori_df.interest_measures import Support
 from src.mining_association_rules.common.utils.csv_to_df import convert_dataset_to_dataframe
 
 # convert your dataset to required format
@@ -18,4 +20,3 @@ rule_measures = {Confidence: 0.2, HyperConfidence: 0.1}
 # run algorithm
 rule_gen = DataFrameRuleGenerator(itemset_measures=itemset_measures, rule_measures=rule_measures)
 rules = rule_gen.generate_strong_association_rules(transactions=df)
-print(rules[0])

@@ -3,7 +3,7 @@ import time
 
 from src.mining_association_rules.common.apriori.apriori import RuleGenerator
 from src.mining_association_rules.common.utils import consts
-from src.mining_association_rules.common.utils.exceptions import EmptyTransactionBaseException
+from src.mining_association_rules.common.utils.exceptions import EmptyTransactionBaseError
 from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
 
 logging.basicConfig(level=logging.DEBUG)
@@ -16,7 +16,7 @@ class ListRuleGenerator(RuleGenerator):
 
     def support(self, itemset: set, transactions: list[set]) -> float:
         if not transactions:
-            raise EmptyTransactionBaseException
+            raise EmptyTransactionBaseError
         start = time.perf_counter()
         supported = [itemset for transaction in transactions if itemset.issubset(transaction)]
         self.support_calculations_time += time.perf_counter() - start
@@ -47,12 +47,13 @@ class ListRuleGenerator(RuleGenerator):
         if not itemsets:
             return frequent_itemsets
 
-        self._logger.info(f"{1} elements frequent itemsets {len(itemsets)}")
+        self._logger.info("1 element frequent itemsets {len(itemsets)}")
         frequent_itemsets.extend(itemsets)
         for i in range(2, len(elements_universe)):
             candidates = self._apriori_gen(itemsets)
             itemsets = [candidate for candidate in candidates if self.support(candidate, transactions) >= minsup]
-            self._logger.info(f"{i} elements frequent itemsets {len(itemsets)}")
+            log_info = {"itemset_len": len(itemsets), "element_len": i}
+            self._logger.info("%(element_len)s elements frequent itemsets %(itemset_len)s", log_info)
             frequent_itemsets.extend(itemsets)
             if not itemsets:
                 break

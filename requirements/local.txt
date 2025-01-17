@@ -2,6 +2,4 @@
 
 
 pre-commit==4.0.1  # https://github.com/pre-commit/pre-commit
-black==24.10.0  # https://github.com/psf/black
-mypy==1.14.1  # https://github.com/python/mypy
-pytest==8.3.4  # https://github.com/pytest-dev/pytest
+ruff==0.9.2  # https://github.com/astral-sh/ruff

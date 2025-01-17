@@ -1,6 +1,6 @@
-class EmptyTransactionBaseException(Exception):
+class EmptyTransactionBaseError(Exception):
     pass
 
 
-class DifferentLengthItemsetException(Exception):
+class DifferentLengthItemsetError(Exception):
     pass

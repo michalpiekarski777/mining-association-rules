@@ -1,5 +1,5 @@
+import datetime
 import logging
-from datetime import datetime
 from pathlib import Path
 
 from config import ROOT_DIR
@@ -13,7 +13,7 @@ class Logger(logging.Logger):
         """Returns path to a file used for logging. Creates logs directory if necessary."""
         path = Path(ROOT_DIR) / "logs"
         path.mkdir(exist_ok=True)
-        filename = datetime.now().strftime("%Y%m%d_%H%M_%s")
+        filename = datetime.datetime.now(tz=datetime.UTC).astimezone().strftime("%Y%m%d_%H%M_%s")
 
         return path / filename
 
