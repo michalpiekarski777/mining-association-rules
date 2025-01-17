@@ -11,9 +11,7 @@ class Confidence(Measure):
         self._support = Support()
         super().__init__()
 
-    def calculate(
-        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
-    ) -> float:
+    def calculate(self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame) -> float:
         start = time.perf_counter()
         rule_support = self._support.calculate(antecedent | consequent, df)
         antecedent_support = self._support.calculate(antecedent, df)

@@ -1,9 +1,5 @@
 from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRuleGenerator
-from src.mining_association_rules.apriori_df.interest_measures import (
-    Confidence,
-    HyperConfidence,
-    Support,
-)
+from src.mining_association_rules.apriori_df.interest_measures import Confidence, HyperConfidence, Support
 from src.mining_association_rules.common.utils.csv_to_df import convert_dataset_to_dataframe
 
 # convert your dataset to required format

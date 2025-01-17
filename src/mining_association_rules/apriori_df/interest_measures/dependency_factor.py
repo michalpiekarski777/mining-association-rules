@@ -9,18 +9,12 @@ class DependencyFactor(Measure):
         self.support_count = SupportCount()
         super().__init__()
 
-    def calculate(
-        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
-    ) -> float:
+    def calculate(self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame) -> float:
         rule_support_count = self.support_count.calculate(antecedent | consequent, df)
         antecedent_support_count = self.support_count.calculate(antecedent, df)
         consequent_support_count = self.support_count.calculate(consequent, df)
 
-        numerator = (rule_support_count / antecedent_support_count) - (
-            consequent_support_count / len(df)
-        )
-        denominator = (rule_support_count / antecedent_support_count) + (
-            consequent_support_count / len(df)
-        )
+        numerator = (rule_support_count / antecedent_support_count) - (consequent_support_count / len(df))
+        denominator = (rule_support_count / antecedent_support_count) + (consequent_support_count / len(df))
 
         return numerator / denominator

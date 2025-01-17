@@ -11,10 +11,7 @@ from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRul
 from src.mining_association_rules.apriori_df.interest_measures.base import Measure
 from src.mining_association_rules.apriori_list.apriori.apriori import ListRuleGenerator
 from src.mining_association_rules.common.utils.enums import RunnerType
-from src.mining_association_rules.common.utils.measures import (
-    interest_measures_classes,
-    rule_measures_classes,
-)
+from src.mining_association_rules.common.utils.measures import interest_measures_classes, rule_measures_classes
 from src.mining_association_rules.common.utils.read_csv import read_transactions_shop
 from src.mining_association_rules.common.utils.runners import run
 from src.mining_association_rules.common.utils.typed_dicts import MeasureThreshold
@@ -71,15 +68,14 @@ def parse_args() -> argparse.Namespace:
                 for measure, threshold in config["itemset_measures"].items()
             }
             args.rule_measures = {
-                rule_measures_classes[measure]: threshold
-                for measure, threshold in config["rule_measures"].items()
+                rule_measures_classes[measure]: threshold for measure, threshold in config["rule_measures"].items()
             }
 
     else:
         args.itemset_measures = {
-            parse_measures_threshold(measure, interest_measures_classes)[
-                0
-            ]: parse_measures_threshold(measure, interest_measures_classes)[1]
+            parse_measures_threshold(measure, interest_measures_classes)[0]: parse_measures_threshold(
+                measure, interest_measures_classes
+            )[1]
             for measure in args.itemset_measures
         }
         args.rule_measures = {
@@ -110,9 +106,7 @@ def prepare_df_gen(
 ) -> tuple[DataFrameRuleGenerator, dict]:
     path = Path(ROOT_DIR) / "sources" / source
     df = pd.read_csv(path) if source.endswith(".csv") else pd.read_parquet(path)
-    rule_gen = DataFrameRuleGenerator(
-        source=source, itemset_measures=itemset_measures, rule_measures=rule_measures
-    )
+    rule_gen = DataFrameRuleGenerator(source=source, itemset_measures=itemset_measures, rule_measures=rule_measures)
     kwargs = dict(transactions=df)
     return rule_gen, kwargs
 

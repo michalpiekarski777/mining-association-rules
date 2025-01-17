@@ -11,9 +11,7 @@ class Support(Measure):
     def __init__(self):
         super().__init__()
 
-    def calculate(
-        self, itemset: frozenset[str], df: pd.DataFrame, minsup: float = consts.SUPPORT_THRESHOLD
-    ) -> float:
+    def calculate(self, itemset: frozenset[str], df: pd.DataFrame, minsup: float = consts.SUPPORT_THRESHOLD) -> float:
         if itemset in self.history:
             return self.history[itemset]
 

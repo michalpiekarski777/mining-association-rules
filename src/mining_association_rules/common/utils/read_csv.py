@@ -42,9 +42,6 @@ def read_mobile_survey(path):
     app_series = df.apply(cat_strings, axis=1)
     app_names = get_app_names(app_series)
     elements = filter_app_names(app_names, threshold=int(len(df) * 0.05))
-    transactions = [
-        {element for element in transaction if element in elements}
-        for transaction in app_series.tolist()
-    ]
+    transactions = [{element for element in transaction if element in elements} for transaction in app_series.tolist()]
 
     return elements, transactions

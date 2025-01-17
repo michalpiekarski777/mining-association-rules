@@ -4,11 +4,7 @@ import pandas as pd
 
 from config import ROOT_DIR
 from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRuleGenerator
-from src.mining_association_rules.apriori_df.interest_measures import (
-    Confidence,
-    HyperConfidence,
-    Support,
-)
+from src.mining_association_rules.apriori_df.interest_measures import Confidence, HyperConfidence, Support
 
 # read dataset from file put in sources catalog
 path = Path(ROOT_DIR) / "sources" / "survey.parquet"

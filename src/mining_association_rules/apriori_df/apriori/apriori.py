@@ -58,9 +58,7 @@ class DataFrameRuleGenerator(RuleGenerator):
         start = time.perf_counter()
         df = self.truncate_infrequent(df, minsup)
         itemsets = [frozenset([element]) for element in df.columns]
-        self._logger.info(
-            f"Finding frequent itemsets of length 1 took {time.perf_counter() - start}"
-        )
+        self._logger.info(f"Finding frequent itemsets of length 1 took {time.perf_counter() - start}")
         self._logger.info(f"{1} elements frequent itemsets {len(itemsets)}")
         frequent_itemsets.extend(itemsets)
         for i in range(2, len(df.columns)):

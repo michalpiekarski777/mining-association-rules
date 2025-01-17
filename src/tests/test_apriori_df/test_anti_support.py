@@ -6,6 +6,4 @@ def test_anti_support(example_dataset):
 
     assert rule_gen.anti_support({"cola"}, {"orzeszki"}, example_dataset) == 0.2
     assert rule_gen.anti_support({"orzeszki", "pieluszki"}, {"piwo"}, example_dataset) == 0.0
-    assert (
-        rule_gen.anti_support({"cola", "orzeszki"}, {"pieluszki", "piwo"}, example_dataset) == 0.4
-    )
+    assert rule_gen.anti_support({"cola", "orzeszki"}, {"pieluszki", "piwo"}, example_dataset) == 0.4

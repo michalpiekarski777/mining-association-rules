@@ -11,9 +11,7 @@ class Conviction(Measure):
         self._confidence = Confidence()
         super().__init__()
 
-    def calculate(
-        self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame
-    ) -> float:
+    def calculate(self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame) -> float:
         consequent_support = self._support.calculate(consequent, df)
         rule_confidence = self._confidence.calculate(antecedent, consequent, df)
 

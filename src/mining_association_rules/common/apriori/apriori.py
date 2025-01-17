@@ -1,27 +1,16 @@
-import logging
 import time
 from abc import ABCMeta, abstractmethod
-from datetime import datetime
 from itertools import chain, combinations
-from pathlib import Path
 
 import pandas as pd
 
-from config import ROOT_DIR
 from src.mining_association_rules.apriori_df.interest_measures import *  # noqa: F401, F403
+from src.mining_association_rules.common.utils.loggers import Logger
 from src.mining_association_rules.common.utils.typed_dicts import AssociationRule, MeasureThreshold
 
 
 class RuleGenerator(metaclass=ABCMeta):
     total_duration: float = 0.0
-
-    def _initialize_logger(self) -> logging.Logger:
-        file_name = datetime.now().strftime("%Y%m%d_%H%M_%s")
-        handler = logging.FileHandler(Path(ROOT_DIR) / "logs" / file_name)
-        logger = logging.getLogger("Rules")
-        logger.addHandler(handler)
-        logger.info(f"Generating association rules for source {self._source}")
-        return logger
 
     def __init__(
         self,
@@ -29,24 +18,22 @@ class RuleGenerator(metaclass=ABCMeta):
         itemset_measures: MeasureThreshold,
         rule_measures: MeasureThreshold,
         source: str = "",
+        logger_class: type[Logger] = Logger,
     ):
         self.start = time.perf_counter()
-        self.itemset_measures = {
-            measure(): threshold for measure, threshold in itemset_measures.items()
-        }
+        self.itemset_measures = {measure(): threshold for measure, threshold in itemset_measures.items()}
         self.rule_measures = {measure(): threshold for measure, threshold in rule_measures.items()}
         self._runner = runner
         self._source = source
         self._rules: list[AssociationRule] = []
-        self._logger = self._initialize_logger()
+        self._logger = logger_class(name="Rules")
+        self._logger.info(f"Generating association rules for source {self._source}")
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self._logger.info(
-            f"Rules generated using {self._runner} database in {self.total_duration} seconds"
-        )
+        self._logger.info(f"Rules generated using {self._runner} database in {self.total_duration} seconds")
         for itemset_measure in self.itemset_measures:
             itemset_measure_name = type(itemset_measure).__name__
             itemset_measure_count = itemset_measure.calculations_count
@@ -63,12 +50,8 @@ class RuleGenerator(metaclass=ABCMeta):
         self._logger.info(f"Found {len(self._rules)} rules")
 
         for rule in self._rules:
-            rule_members = (
-                f"Association rule {set(rule['antecedent'])} -> {set(rule['consequent'])},"
-            )
-            itemset_measure_log = (
-                f"{rule['itemset_measure']['name']}: {rule['itemset_measure']['value']}"
-            )
+            rule_members = f"Association rule {set(rule['antecedent'])} -> {set(rule['consequent'])},"
+            itemset_measure_log = f"{rule['itemset_measure']['name']}: {rule['itemset_measure']['value']}"
             rule_measure_log = ""
             for rule_measure in rule["rule_measures"]:
                 rule_measure_log += f"{rule_measure['name']}: {round(rule_measure['value'], 3)}, "
@@ -112,9 +95,7 @@ class RuleGenerator(metaclass=ABCMeta):
         minsup = list(self.itemset_measures.values())[0]
         for itemset in frequent_itemsets:
             for subset in self._generate_subset_combinations(itemset):
-                itemset_measure = list(self.itemset_measures.keys())[0].calculate(
-                    itemset, transactions, minsup
-                )
+                itemset_measure = list(self.itemset_measures.keys())[0].calculate(itemset, transactions, minsup)
                 antecedent = frozenset(subset)
                 consequent = itemset - frozenset(subset)
                 threshold_meeting_measures = {}
@@ -145,6 +126,4 @@ class RuleGenerator(metaclass=ABCMeta):
         :param elements: set of elements
         :return: list of not empty subsets of set elements excluding set of length len(elements)
         """
-        return list(
-            chain.from_iterable(combinations(elements, size) for size in range(1, len(elements)))
-        )
+        return list(chain.from_iterable(combinations(elements, size) for size in range(1, len(elements))))

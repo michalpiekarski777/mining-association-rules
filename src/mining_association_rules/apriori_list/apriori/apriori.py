@@ -23,13 +23,9 @@ class ListRuleGenerator(RuleGenerator):
         self.support_calculations += 1
         return len(supported) / len(transactions)
 
-    def generate_strong_association_rules(
-        self, transactions: list[set], elements: set
-    ) -> list[AssociationRule]:
+    def generate_strong_association_rules(self, transactions: list[set], elements: set) -> list[AssociationRule]:
         start = time.perf_counter()
-        frequent_itemsets = self.find_frequent_itemsets(
-            transactions, elements, consts.SUPPORT_THRESHOLD
-        )
+        frequent_itemsets = self.find_frequent_itemsets(transactions, elements, consts.SUPPORT_THRESHOLD)
         rules = self._generate_association_rules(frequent_itemsets, transactions)
         self.total_duration = time.perf_counter() - start
 
@@ -47,11 +43,7 @@ class ListRuleGenerator(RuleGenerator):
         :return:
         """
         frequent_itemsets: list[set] = []
-        itemsets = [
-            {element}
-            for element in elements_universe
-            if self.support({element}, transactions) >= minsup
-        ]
+        itemsets = [{element} for element in elements_universe if self.support({element}, transactions) >= minsup]
         if not itemsets:
             return frequent_itemsets
 
@@ -59,11 +51,7 @@ class ListRuleGenerator(RuleGenerator):
         frequent_itemsets.extend(itemsets)
         for i in range(2, len(elements_universe)):
             candidates = self._apriori_gen(itemsets)
-            itemsets = [
-                candidate
-                for candidate in candidates
-                if self.support(candidate, transactions) >= minsup
-            ]
+            itemsets = [candidate for candidate in candidates if self.support(candidate, transactions) >= minsup]
             self._logger.info(f"{i} elements frequent itemsets {len(itemsets)}")
             frequent_itemsets.extend(itemsets)
             if not itemsets:
