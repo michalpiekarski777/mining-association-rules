@@ -4,7 +4,6 @@ import time
 import pandas as pd
 
 from src.mining_association_rules.common.apriori.apriori import RuleGenerator
-from src.mining_association_rules.common.utils import consts
 from src.mining_association_rules.common.utils.exceptions import EmptyTransactionBaseError
 from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
 from src.mining_association_rules.common.utils.typed_dicts import MeasureThreshold
@@ -30,6 +29,7 @@ class DataFrameRuleGenerator(RuleGenerator):
         )
 
     def truncate_infrequent(self, df: pd.DataFrame, minsup: float) -> pd.DataFrame:
+        """According to the Apriori rule we can remove columns that represent infrequent itemsets of length 1"""
         if df.empty is True:
             raise EmptyTransactionBaseError
 
@@ -41,43 +41,81 @@ class DataFrameRuleGenerator(RuleGenerator):
         elements: frozenset[str] | None = None,
     ) -> list[AssociationRule]:
         start = time.perf_counter()
-        frequent_itemsets = self.find_frequent_itemsets(transactions, consts.SUPPORT_THRESHOLD)
+        frequent_itemsets = self.find_frequent_itemsets(transactions)
+        t2 = time.perf_counter()
+        self._logger.info("Finding frequent itemsets took %(time)s", {"time": t2 - start})
         rules = self._generate_association_rules(frequent_itemsets, transactions)
+        t3 = time.perf_counter()
+        self._logger.info("Generating association rules took %(time)s", {"time": t3 - t2})
         self.total_duration = time.perf_counter() - start
 
         return rules
 
-    def find_frequent_itemsets(
-        self,
-        df: pd.DataFrame,
-        minsup: float = consts.SUPPORT_THRESHOLD,
-    ) -> list[frozenset[str]]:
+    def find_frequent_itemsets(self, df: pd.DataFrame) -> list[frozenset[str]]:
         """
         Finds all subsets of elements_universe that meet support threshold
         :param df: transaction database
         :param minsup: minimum support threshold
-        :return: list of subsets of elements universe
+        :return: list of subsets of elements universe that meet support threshold
         """
         minsup = next(iter(self.itemset_measures.values()))
         frequent_itemsets = []
-        start = time.perf_counter()
         df = self.truncate_infrequent(df, minsup)
         itemsets = [frozenset([element]) for element in df.columns]
-        log_itemsets_time = time.perf_counter() - start
-        self._logger.info("Finding frequent itemsets of length 1 took %(time)s", {"time": log_itemsets_time})
-        self._logger.info("1 element frequent itemsets %(itemsets)s", {"itemsets": len(itemsets)})
         frequent_itemsets.extend(itemsets)
-        for i in range(2, len(df.columns)):
+        for _ in range(2, len(df.columns)):
             candidates = self._apriori_gen(itemsets)
-            itemsets = [
-                candidate
-                for candidate in candidates
-                if next(iter(self.itemset_measures.keys())).calculate(candidate, df, minsup) >= minsup
-            ]
-            log_info = {"itemset_len": len(itemsets), "element_len": i}
-            self._logger.info("%(element_len)s elements frequent itemsets %(itemset_len)s", log_info)
+            supports = next(iter(self.itemset_measures)).calculate(candidates, df, minsup)
+            itemsets = [c for c, s in zip(candidates, supports, strict=False) if s > minsup * len(df)]
             frequent_itemsets.extend(itemsets)
             if not itemsets:
                 break
 
         return frequent_itemsets
+
+    def _generate_association_rules(
+        self,
+        frequent_itemsets: list[frozenset[str]],
+        df: pd.DataFrame,
+    ) -> list[AssociationRule]:
+        """
+        :param frequent_itemsets: list of frozensets containing frequent itemsets
+        :param df: transaction database
+        :return: association rules with metrics data
+        """
+        rule_candidates = [
+            {
+                "antecedent": subset,
+                "consequent": itemset - frozenset(subset),
+                "itemset": itemset,
+            }
+            for itemset in frequent_itemsets
+            for subset in self._generate_subset_combinations(itemset)
+        ]
+        minsup = next(iter(self.itemset_measures.values()))
+        supports = next(iter(self.itemset_measures)).calculate([c["itemset"] for c in rule_candidates], df, minsup)
+        rule_measures_list = [measure.calculate(rule_candidates, df, minsup) for measure in self.rule_measures]
+        for index, (support, candidate) in enumerate(zip(supports, rule_candidates, strict=False)):
+            threshold_meeting_measures = {}
+            for i, (measure, threshold) in enumerate(self.rule_measures.items()):
+                value = rule_measures_list[i][index]
+                if value >= threshold:
+                    threshold_meeting_measures[measure] = value
+
+            if len(threshold_meeting_measures) == len(self.rule_measures):
+                self._rules.append(
+                    {
+                        "antecedent": candidate["antecedent"],
+                        "consequent": candidate["consequent"],
+                        "itemset_measure": {
+                            "name": type(next(iter(self.itemset_measures.keys()))).__name__,
+                            "value": round(support, 3),
+                        },
+                        "rule_measures": [
+                            {"name": type(name).__name__, "value": value}
+                            for name, value in threshold_meeting_measures.items()
+                        ],
+                    },
+                )
+
+        return self._rules

@@ -4,16 +4,15 @@ import pandas as pd
 
 from config import ROOT_DIR
 from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRuleGenerator
-from src.mining_association_rules.apriori_df.interest_measures import Confidence
-from src.mining_association_rules.apriori_df.interest_measures import HyperConfidence
-from src.mining_association_rules.apriori_df.interest_measures import Support
+from src.mining_association_rules.apriori_df.interest_measures.batch_confidence import BatchConfidence
+from src.mining_association_rules.apriori_df.interest_measures.batch_support import BatchSupport
 
 # read dataset from file put in sources catalog
 path = Path(ROOT_DIR) / "sources" / "survey.parquet"
 df = pd.read_parquet(path)
 # specify measures used during the processing with its thresholds
-itemset_measures = {Support: 0.7}
-rule_measures = {Confidence: 0.7, HyperConfidence: 0.9}
+itemset_measures = {BatchSupport: 0.5}
+rule_measures = {BatchConfidence: 0.5}
 # run algorithm
 rule_gen = DataFrameRuleGenerator(itemset_measures=itemset_measures, rule_measures=rule_measures)
 rules = rule_gen.generate_strong_association_rules(transactions=df)

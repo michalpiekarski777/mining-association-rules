@@ -59,3 +59,45 @@ class ListRuleGenerator(RuleGenerator):
                 break
 
         return frequent_itemsets
+
+    def _generate_association_rules(
+        self,
+        frequent_itemsets: list[frozenset[str]],
+        transactions: list[set],
+    ) -> list[AssociationRule]:
+        """
+        For each frequent itemsts find not empty subsets subLi, so the support of Li divided by support of subLi is
+        greater than minconf, return all association rules in form of lists of dictionaries containing association rules
+        in form of 2 sets (antecedent and consequent)
+        :param frequent_itemsets:
+        :param minconf:
+        :return:
+        """
+        minsup = next(iter(self.itemset_measures.values()))
+        for itemset in frequent_itemsets:
+            for subset in self._generate_subset_combinations(itemset):
+                itemset_measure = next(iter(self.rule_itemset_measures.keys())).calculate(itemset, transactions, minsup)
+                antecedent = frozenset(subset)
+                consequent = itemset - frozenset(subset)
+                threshold_meeting_measures = {}
+                for measure, threshold in self.rule_measures.items():
+                    value = measure.calculate(antecedent, consequent, transactions)
+                    if value > threshold:
+                        threshold_meeting_measures[measure] = value
+
+                if len(threshold_meeting_measures) == len(self.rule_measures):
+                    self._rules.append(
+                        {
+                            "antecedent": antecedent,
+                            "consequent": consequent,
+                            "itemset_measure": {
+                                "name": type(next(iter(self.itemset_measures.keys()))).__name__,
+                                "value": round(itemset_measure, 3),
+                            },
+                            "rule_measures": [
+                                {"name": type(name).__name__, "value": value}
+                                for name, value in threshold_meeting_measures.items()
+                            ],
+                        },
+                    )
+        return self._rules

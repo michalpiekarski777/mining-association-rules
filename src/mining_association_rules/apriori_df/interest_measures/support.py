@@ -23,6 +23,7 @@ class Support(Measure):
             sup = df[list(itemset)].eq(1).all(axis=1).value_counts().get(True, 0) / len(df)
         else:
             sup = df[next(iter(itemset))].value_counts().loc[1] / len(df)
+
         self.calculations_time += time.perf_counter() - start
         self.calculations_count += 1
 
