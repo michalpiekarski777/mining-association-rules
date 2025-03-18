@@ -17,13 +17,11 @@ class DataFrameRuleGenerator(RuleGenerator):
         self,
         itemset_measures: MeasureThreshold,
         rule_measures: MeasureThreshold,
-        source: str = "",
     ):
         self.supports: dict[frozenset[str], float] = {}
         self.support_counts: dict[frozenset[str], float] = {}
         super().__init__(
             runner="df",
-            source=source,
             itemset_measures=itemset_measures,
             rule_measures=rule_measures,
         )
@@ -43,10 +41,16 @@ class DataFrameRuleGenerator(RuleGenerator):
         start = time.perf_counter()
         frequent_itemsets = self.find_frequent_itemsets(transactions)
         t2 = time.perf_counter()
-        self._logger.info("Finding frequent itemsets took %(time)s", {"time": t2 - start})
+        self._logger.info(
+            "Finding %(n)s frequent itemsets took %(time)s",
+            {"time": t2 - start, "n": len(frequent_itemsets)},
+        )
         rules = self._generate_association_rules(frequent_itemsets, transactions)
         t3 = time.perf_counter()
-        self._logger.info("Generating association rules took %(time)s", {"time": t3 - t2})
+        self._logger.info(
+            "Generating %(n)s association rules took %(time)s",
+            {"time": t3 - t2, "n": len(rules)},
+        )
         self.total_duration = time.perf_counter() - start
 
         return rules

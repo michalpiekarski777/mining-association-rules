@@ -1,10 +1,15 @@
+import datetime
+import json
 import time
 from abc import ABCMeta
 from abc import abstractmethod
 from itertools import chain
 from itertools import combinations
+from pathlib import Path
 
+from config import ROOT_DIR
 from src.mining_association_rules.apriori_df.interest_measures import *  # noqa: F403
+from src.mining_association_rules.common.utils.encoders import JSONEncoder
 from src.mining_association_rules.common.utils.loggers import Logger
 from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
 from src.mining_association_rules.common.utils.typed_dicts import MeasureThreshold
@@ -18,17 +23,48 @@ class RuleGenerator(metaclass=ABCMeta):
         runner: str,
         itemset_measures: MeasureThreshold,
         rule_measures: MeasureThreshold,
-        source: str = "",
         logger_class: type[Logger] = Logger,
     ):
         self.start = time.perf_counter()
         self.itemset_measures = {measure(): threshold for measure, threshold in itemset_measures.items()}
         self.rule_measures = {measure(): threshold for measure, threshold in rule_measures.items()}
         self._runner = runner
-        self._source = source
         self._rules: list[AssociationRule] = []
         self._logger = logger_class(name="Rules")
-        self._logger.info("Generating association rules for source %(source)s", {"source": self._source})
+
+    @abstractmethod
+    def generate_strong_association_rules(self, *args, **kwargs) -> list[AssociationRule]:
+        raise NotImplementedError
+
+    def _apriori_gen(self, itemsets: list[frozenset[str]]) -> list[frozenset[str]]:
+        """
+        :param itemsets: list of k-element frequent itemsets
+        :return: list of k+1-element candidates for the frequent itemsets
+        """
+        set_length = len(itemsets[0])
+        sorted_itemsets = [sorted(itemset) for itemset in itemsets]
+
+        return [
+            itemset.union(itemsets[j])
+            for index, (itemset, sorted_itemset) in enumerate(zip(itemsets, sorted_itemsets, strict=False))
+            for j in range(index + 1, len(itemsets))
+            if sorted_itemset[: set_length - 1] == sorted_itemsets[j][: set_length - 1]
+        ]
+
+    def _generate_subset_combinations(self, elements: frozenset[str]) -> list[tuple]:
+        """
+        :param elements: set of elements
+        :return: list of not empty subsets of set elements excluding set of length len(elements)
+        """
+        return list(chain.from_iterable(combinations(elements, size) for size in range(1, len(elements))))
+
+    def _dump_rules_to_json(self):
+        path = Path(ROOT_DIR) / "outputs"
+        path.mkdir(exist_ok=True)
+        filename = datetime.datetime.now(tz=datetime.UTC).astimezone().strftime("%Y%m%d_%H%M_%s") + ".json"
+
+        with Path.open(Path(path) / filename, "w") as f:
+            json.dump(self._rules, f, cls=JSONEncoder, indent=4)
 
     def __enter__(self):
         return self
@@ -61,28 +97,4 @@ class RuleGenerator(metaclass=ABCMeta):
             msg = rule_members + itemset_measure_log + "," + rule_measure_log
             self._logger.info(msg)
 
-    @abstractmethod
-    def generate_strong_association_rules(self, *args, **kwargs) -> list[AssociationRule]:
-        raise NotImplementedError
-
-    def _apriori_gen(self, itemsets: list[frozenset[str]]) -> list[frozenset[str]]:
-        """
-        :param itemsets: list of k-element frequent itemsets
-        :return: list of k+1-element candidates for the frequent itemsets
-        """
-        set_length = len(itemsets[0])
-        sorted_itemsets = [sorted(itemset) for itemset in itemsets]
-
-        return [
-            itemset.union(itemsets[j])
-            for index, (itemset, sorted_itemset) in enumerate(zip(itemsets, sorted_itemsets, strict=False))
-            for j in range(index + 1, len(itemsets))
-            if sorted_itemset[: set_length - 1] == sorted_itemsets[j][: set_length - 1]
-        ]
-
-    def _generate_subset_combinations(self, elements: frozenset[str]) -> list[tuple]:
-        """
-        :param elements: set of elements
-        :return: list of not empty subsets of set elements excluding set of length len(elements)
-        """
-        return list(chain.from_iterable(combinations(elements, size) for size in range(1, len(elements))))
+        self._dump_rules_to_json()

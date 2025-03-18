@@ -11,8 +11,8 @@ from src.mining_association_rules.apriori_df.interest_measures.batch_support imp
 path = Path(ROOT_DIR) / "sources" / "survey.parquet"
 df = pd.read_parquet(path)
 # specify measures used during the processing with its thresholds
-itemset_measures = {BatchSupport: 0.5}
-rule_measures = {BatchConfidence: 0.5}
+itemset_measures = {BatchSupport: 0.6}
+rule_measures = {BatchConfidence: 0.6}
 # run algorithm
-rule_gen = DataFrameRuleGenerator(itemset_measures=itemset_measures, rule_measures=rule_measures)
-rules = rule_gen.generate_strong_association_rules(transactions=df)
+with DataFrameRuleGenerator(itemset_measures=itemset_measures, rule_measures=rule_measures) as rule_gen:
+    rule_gen.generate_strong_association_rules(transactions=df)
