@@ -8,11 +8,14 @@ from src.mining_association_rules.apriori_df.interest_measures import HyperLift
 from src.mining_association_rules.apriori_df.interest_measures import Lift
 from src.mining_association_rules.apriori_df.interest_measures import RuleInterestFunction
 from src.mining_association_rules.apriori_df.interest_measures import Support
+from src.mining_association_rules.apriori_df.interest_measures.batch_confidence import BatchConfidence
+from src.mining_association_rules.apriori_df.interest_measures.batch_support import BatchSupport
 
-interest_measures_classes = {"support": Support}
+interest_measures_classes = {"batch_support": BatchSupport, "support": Support}
 
 rule_measures_classes = {
     "anti_support": AntiSupport,
+    "batch_confidence": BatchConfidence,
     "confidence": Confidence,
     "conviction": Conviction,
     "dependency_factor": DependencyFactor,

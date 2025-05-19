@@ -41,7 +41,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "-i",
         "--itemset_measures",
-        default=["support=0.1"],
+        default=["batch_support=0.1"],
         type=str,
         nargs="*",
         help="List of interest measures used to generate frequent itemsets",
@@ -49,10 +49,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "-r",
         "--rule_measures",
-        default=["confidence=0.1"],
+        default=["batch_confidence=0.1"],
         type=str,
         nargs="*",
-        help="List of interest measured used to generate strong association rules",
+        help="List of interest measures used to generate strong association rules",
     )
     parser.add_argument("-b", "--backend", default="df", choices=["df", "list"])
     args = parser.parse_args()
@@ -110,7 +110,7 @@ def prepare_df_gen(
 ) -> tuple[DataFrameRuleGenerator, dict]:
     path = Path(ROOT_DIR) / "sources" / source
     df = pd.read_csv(path) if source.endswith(".csv") else pd.read_parquet(path)
-    rule_gen = DataFrameRuleGenerator(source=source, itemset_measures=itemset_measures, rule_measures=rule_measures)
+    rule_gen = DataFrameRuleGenerator(itemset_measures=itemset_measures, rule_measures=rule_measures)
     kwargs = {"transactions": df}
     return rule_gen, kwargs
 
