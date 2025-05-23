@@ -25,4 +25,4 @@ class BatchSupport(Measure):
         self.calculations_time += time.perf_counter() - start
         self.calculations_count += 1
 
-        return supports
+        return supports / len(df)

@@ -70,7 +70,7 @@ class DataFrameRuleGenerator(RuleGenerator):
         for _ in range(2, len(df.columns)):
             candidates = self._apriori_gen(itemsets)
             supports = next(iter(self.itemset_measures)).calculate(candidates, df, minsup)
-            itemsets = [c for c, s in zip(candidates, supports, strict=False) if s > minsup * len(df)]
+            itemsets = [c for c, s in zip(candidates, supports, strict=False) if s > minsup]
             frequent_itemsets.extend(itemsets)
             if not itemsets:
                 break

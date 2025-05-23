@@ -1,5 +1,6 @@
 import time
 
+import numpy as np
 import pandas as pd
 
 from src.mining_association_rules.apriori_df.interest_measures.base import Measure
@@ -11,23 +12,32 @@ class Support(Measure):
     def __init__(self):
         super().__init__()
 
-    def calculate(self, itemset: frozenset[str], df: pd.DataFrame, minsup: float = consts.SUPPORT_THRESHOLD) -> float:
-        if itemset in self.history:
-            return self.history[itemset]
+    def calculate(
+        self,
+        itemsets: list[frozenset[str]],
+        df: pd.DataFrame,
+        minsup: float = consts.SUPPORT_THRESHOLD,
+    ) -> np.ndarray:
+        supports = np.empty(len(itemsets), dtype=float)
 
-        if df.empty is True:
-            raise EmptyTransactionBaseError
+        for i, itemset in enumerate(itemsets):
+            if itemset in self.history:
+                supports[i] = self.history[itemset]
 
-        start = time.perf_counter()
-        if len(itemset) > 1:
-            sup = df[list(itemset)].eq(1).all(axis=1).value_counts().get(True, 0) / len(df)
-        else:
-            sup = df[next(iter(itemset))].value_counts().loc[1] / len(df)
+            if df.empty is True:
+                raise EmptyTransactionBaseError
 
-        self.calculations_time += time.perf_counter() - start
-        self.calculations_count += 1
+            start = time.perf_counter()
+            if len(itemset) > 1:
+                sup = df[list(itemset)].eq(1).all(axis=1).value_counts().get(True, 0) / len(df)
+            else:
+                sup = df[next(iter(itemset))].value_counts().loc[1] / len(df)
 
-        if sup >= minsup:
-            self.history[itemset] = sup
+            self.calculations_time += time.perf_counter() - start
+            self.calculations_count += 1
+            supports[i] = sup
 
-        return sup
+            if sup >= minsup:
+                self.history[itemset] = sup
+
+        return supports

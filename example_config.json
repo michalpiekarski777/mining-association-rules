@@ -1,9 +1,9 @@
 {
   "file": "survey.parquet",
   "itemset_measures": {
-    "batch_support": 0.7
+    "batch_support": 0.6
   },
   "rule_measures": {
-    "batch_confidence": 0.7
+    "batch_confidence": 0.3
   }
 }
