@@ -15,7 +15,6 @@ from src.mining_association_rules.common.utils.measures import interest_measures
 from src.mining_association_rules.common.utils.measures import rule_measures_classes
 from src.mining_association_rules.common.utils.read_csv import read_transactions_shop
 from src.mining_association_rules.common.utils.runners import run
-from src.mining_association_rules.common.utils.typed_dicts import MeasureThreshold
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -105,8 +104,8 @@ def parse_measures_threshold(value: str, measure_classes: dict) -> tuple[Measure
 
 def prepare_df_gen(
     source: str,
-    itemset_measures: MeasureThreshold,
-    rule_measures: MeasureThreshold,
+    itemset_measures: dict[type[Measure], float],
+    rule_measures: dict[type[Measure], float],
 ) -> tuple[DataFrameRuleGenerator, dict]:
     path = Path(ROOT_DIR) / "sources" / source
     df = pd.read_csv(path) if source.endswith(".csv") else pd.read_parquet(path)

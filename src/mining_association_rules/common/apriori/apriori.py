@@ -9,10 +9,10 @@ from pathlib import Path
 
 from config import ROOT_DIR
 from src.mining_association_rules.apriori_df.interest_measures import *  # noqa: F403
+from src.mining_association_rules.apriori_df.interest_measures.base import Measure
 from src.mining_association_rules.common.utils.encoders import JSONEncoder
 from src.mining_association_rules.common.utils.loggers import Logger
 from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
-from src.mining_association_rules.common.utils.typed_dicts import MeasureThreshold
 
 
 class RuleGenerator(metaclass=ABCMeta):
@@ -21,8 +21,8 @@ class RuleGenerator(metaclass=ABCMeta):
     def __init__(
         self,
         runner: str,
-        itemset_measures: MeasureThreshold,
-        rule_measures: MeasureThreshold,
+        itemset_measures: dict[type[Measure], float],
+        rule_measures: dict[type[Measure], float],
         logger_class: type[Logger] = Logger,
     ):
         self.start = time.perf_counter()

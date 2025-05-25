@@ -1,4 +1,6 @@
 from .anti_support import AntiSupport
+from .batch_confidence import BatchConfidence
+from .batch_support import BatchSupport
 from .confidence import Confidence
 from .conviction import Conviction
 from .dependency_factor import DependencyFactor
@@ -12,6 +14,8 @@ from .support_count import SupportCount
 
 __all__ = [
     "AntiSupport",
+    "BatchConfidence",
+    "BatchSupport",
     "Confidence",
     "Conviction",
     "DependencyFactor",

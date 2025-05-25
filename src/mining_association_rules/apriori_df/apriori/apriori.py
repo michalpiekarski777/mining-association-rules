@@ -3,10 +3,10 @@ import time
 
 import pandas as pd
 
+from src.mining_association_rules.apriori_df.interest_measures.base import Measure
 from src.mining_association_rules.common.apriori.apriori import RuleGenerator
 from src.mining_association_rules.common.utils.exceptions import EmptyTransactionBaseError
 from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
-from src.mining_association_rules.common.utils.typed_dicts import MeasureThreshold
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 class DataFrameRuleGenerator(RuleGenerator):
     def __init__(
         self,
-        itemset_measures: MeasureThreshold,
-        rule_measures: MeasureThreshold,
+        itemset_measures: dict[type[Measure], float],
+        rule_measures: dict[type[Measure], float],
     ):
         self.supports: dict[frozenset[str], float] = {}
         self.support_counts: dict[frozenset[str], float] = {}
