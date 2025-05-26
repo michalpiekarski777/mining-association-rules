@@ -1,8 +1,9 @@
 venv/
 .idea/
-sources/raw/raw-data.csv
+sources/raw-data.csv
 dist/
 logs/
+outputs/
 __pycache__/
 notebooks/
 .ipynb_checkpoints/
