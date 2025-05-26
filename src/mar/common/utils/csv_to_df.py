@@ -3,9 +3,9 @@ from pathlib import Path
 import pandas as pd
 
 from config import ROOT_DIR
-from src.mining_association_rules.common.utils.enums import FileFormat
-from src.mining_association_rules.common.utils.read_csv import read_mobile_survey
-from src.mining_association_rules.common.utils.read_csv import read_transactions_groceries
+from src.mar.common.utils.enums import FileFormat
+from src.mar.common.utils.read_csv import read_mobile_survey
+from src.mar.common.utils.read_csv import read_transactions_groceries
 
 
 def convert_dataset_to_dataframe(elements: list, transactions: list[list[str]]) -> pd.DataFrame:

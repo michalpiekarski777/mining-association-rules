@@ -4,11 +4,11 @@ from typing import cast
 
 import pandas as pd
 
-from src.mining_association_rules.apriori_df.interest_measures.base import Measure
-from src.mining_association_rules.common.apriori.apriori import RuleGenerator
-from src.mining_association_rules.common.utils.exceptions import EmptyTransactionBaseError
-from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
-from src.mining_association_rules.common.utils.typed_dicts import MeasureTypedDict
+from src.mar.apriori_df.interest_measures.base import Measure
+from src.mar.common.apriori.apriori import RuleGenerator
+from src.mar.common.utils.exceptions import EmptyTransactionBaseError
+from src.mar.common.utils.typed_dicts import AssociationRule
+from src.mar.common.utils.typed_dicts import MeasureTypedDict
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -116,7 +116,7 @@ class DataFrameRuleGenerator(RuleGenerator):
                     "value": round(support, 3),
                 }
                 rule_measures = [
-                    cast(MeasureTypedDict, {"name": type(name).__name__, "value": value})
+                    cast(MeasureTypedDict, {"name": type(name).__name__, "value": round(value, 3)})
                     for name, value in threshold_meeting_measures.items()
                 ]
                 self._rules.append(

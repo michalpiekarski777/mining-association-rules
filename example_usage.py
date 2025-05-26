@@ -3,9 +3,9 @@ from pathlib import Path
 import pandas as pd
 
 from config import ROOT_DIR
-from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRuleGenerator
-from src.mining_association_rules.apriori_df.interest_measures.batch_confidence import BatchConfidence
-from src.mining_association_rules.apriori_df.interest_measures.batch_support import BatchSupport
+from src.mar.apriori_df.apriori import DataFrameRuleGenerator
+from src.mar.apriori_df.interest_measures.batch_confidence import BatchConfidence
+from src.mar.apriori_df.interest_measures.batch_support import BatchSupport
 
 # read dataset from file put in sources catalog
 path = Path(ROOT_DIR) / "sources" / "survey.parquet"

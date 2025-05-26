@@ -3,8 +3,8 @@ import time
 import pandas as pd
 from scipy.stats import hypergeom
 
-from src.mining_association_rules.apriori_df.interest_measures.base import Measure
-from src.mining_association_rules.apriori_df.interest_measures.support_count import SupportCount
+from src.mar.apriori_df.interest_measures.base import Measure
+from src.mar.apriori_df.interest_measures.support_count import SupportCount
 
 
 class HyperLift(Measure):

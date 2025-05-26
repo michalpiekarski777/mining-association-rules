@@ -1,4 +1,4 @@
-from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRuleGenerator
+from src.mar.apriori_df.apriori import DataFrameRuleGenerator
 
 
 def test_anti_support(example_dataset):

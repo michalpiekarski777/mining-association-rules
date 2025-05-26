@@ -8,11 +8,11 @@ from itertools import combinations
 from pathlib import Path
 
 from config import ROOT_DIR
-from src.mining_association_rules.apriori_df.interest_measures import *  # noqa: F403
-from src.mining_association_rules.apriori_df.interest_measures.base import Measure
-from src.mining_association_rules.common.utils.encoders import JSONEncoder
-from src.mining_association_rules.common.utils.loggers import Logger
-from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
+from src.mar.apriori_df.interest_measures import *  # noqa: F403
+from src.mar.apriori_df.interest_measures.base import Measure
+from src.mar.common.utils.encoders import JSONEncoder
+from src.mar.common.utils.loggers import Logger
+from src.mar.common.utils.typed_dicts import AssociationRule
 
 
 class RuleGenerator(metaclass=ABCMeta):

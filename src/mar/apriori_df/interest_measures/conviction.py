@@ -1,8 +1,8 @@
 import pandas as pd
 
-from src.mining_association_rules.apriori_df.interest_measures.base import Measure
-from src.mining_association_rules.apriori_df.interest_measures.confidence import Confidence
-from src.mining_association_rules.apriori_df.interest_measures.support import Support
+from src.mar.apriori_df.interest_measures.base import Measure
+from src.mar.apriori_df.interest_measures.confidence import Confidence
+from src.mar.apriori_df.interest_measures.support import Support
 
 
 class Conviction(Measure):

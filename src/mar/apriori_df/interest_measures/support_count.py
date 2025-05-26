@@ -1,7 +1,7 @@
 import pandas as pd
 
-from src.mining_association_rules.apriori_df.interest_measures.base import Measure
-from src.mining_association_rules.common.utils.exceptions import EmptyTransactionBaseError
+from src.mar.apriori_df.interest_measures.base import Measure
+from src.mar.common.utils.exceptions import EmptyTransactionBaseError
 
 
 class SupportCount(Measure):

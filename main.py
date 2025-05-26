@@ -7,14 +7,14 @@ from pathlib import Path
 import pandas as pd
 
 from config import ROOT_DIR
-from src.mining_association_rules.apriori_df.apriori.apriori import DataFrameRuleGenerator
-from src.mining_association_rules.apriori_df.interest_measures.base import Measure
-from src.mining_association_rules.apriori_list.apriori.apriori import ListRuleGenerator
-from src.mining_association_rules.common.utils.enums import RunnerType
-from src.mining_association_rules.common.utils.measures import interest_measures_classes
-from src.mining_association_rules.common.utils.measures import rule_measures_classes
-from src.mining_association_rules.common.utils.read_csv import read_transactions_shop
-from src.mining_association_rules.common.utils.runners import run
+from src.mar.apriori_df.apriori import DataFrameRuleGenerator
+from src.mar.apriori_df.interest_measures.base import Measure
+from src.mar.apriori_list.apriori.apriori import ListRuleGenerator
+from src.mar.common.utils.enums import RunnerType
+from src.mar.common.utils.measures import interest_measures_classes
+from src.mar.common.utils.measures import rule_measures_classes
+from src.mar.common.utils.read_csv import read_transactions_shop
+from src.mar.common.utils.runners import run
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

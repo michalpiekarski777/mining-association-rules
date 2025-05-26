@@ -1,7 +1,7 @@
 from contextlib import AbstractContextManager
 from typing import Protocol
 
-from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
+from src.mar.common.utils.typed_dicts import AssociationRule
 
 
 class RuleGeneratorProtocol(Protocol, AbstractContextManager):

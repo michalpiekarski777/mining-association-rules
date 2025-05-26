@@ -1,10 +1,10 @@
 import logging
 import time
 
-from src.mining_association_rules.common.apriori.apriori import RuleGenerator
-from src.mining_association_rules.common.utils import consts
-from src.mining_association_rules.common.utils.exceptions import EmptyTransactionBaseError
-from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
+from src.mar.common.apriori.apriori import RuleGenerator
+from src.mar.common.utils import consts
+from src.mar.common.utils.exceptions import EmptyTransactionBaseError
+from src.mar.common.utils.typed_dicts import AssociationRule
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

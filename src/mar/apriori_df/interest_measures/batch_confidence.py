@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 
-from src.mining_association_rules.apriori_df.interest_measures.base import Measure
-from src.mining_association_rules.apriori_df.interest_measures.batch_support import BatchSupport
-from src.mining_association_rules.common.utils import consts
+from src.mar.apriori_df.interest_measures.base import Measure
+from src.mar.apriori_df.interest_measures.batch_support import BatchSupport
+from src.mar.common.utils import consts
 
 
 class BatchConfidence(Measure):
