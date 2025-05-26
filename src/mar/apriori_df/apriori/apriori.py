@@ -9,6 +9,7 @@ from src.mar.common.apriori.apriori import RuleGenerator
 from src.mar.common.utils.exceptions import EmptyTransactionBaseError
 from src.mar.common.utils.typed_dicts import AssociationRule
 from src.mar.common.utils.typed_dicts import MeasureTypedDict
+from src.mar.common.utils.typed_dicts import RuleCandidate
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -92,11 +93,14 @@ class DataFrameRuleGenerator(RuleGenerator):
         :return: association rules with metrics data
         """
         rule_candidates = [
-            {
-                "antecedent": frozenset(subset),
-                "consequent": itemset - frozenset(subset),
-                "itemset": itemset,
-            }
+            cast(
+                RuleCandidate,
+                {
+                    "antecedent": frozenset(subset),
+                    "consequent": itemset - frozenset(subset),
+                    "itemset": itemset,
+                },
+            )
             for itemset in frequent_itemsets
             for subset in self._generate_subset_combinations(itemset)
         ]
