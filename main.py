@@ -54,6 +54,13 @@ def parse_args() -> argparse.Namespace:
         help="List of interest measures used to generate strong association rules",
     )
     parser.add_argument("-b", "--backend", default="df", choices=["df", "list"])
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        default=False,
+        type=bool,
+        help="Specifies how detailed logs should be displayed",
+    )
     args = parser.parse_args()
 
     if not args.config and not args.file:
@@ -106,10 +113,12 @@ def prepare_df_gen(
     source: str,
     itemset_measures: dict[type[Measure], float],
     rule_measures: dict[type[Measure], float],
+    *,
+    verbose: bool = False,
 ) -> tuple[DataFrameRuleGenerator, dict]:
     path = Path(ROOT_DIR) / "sources" / source
     df = pd.read_csv(path) if source.endswith(".csv") else pd.read_parquet(path)
-    rule_gen = DataFrameRuleGenerator(itemset_measures=itemset_measures, rule_measures=rule_measures)
+    rule_gen = DataFrameRuleGenerator(itemset_measures=itemset_measures, rule_measures=rule_measures, verbose=verbose)
     kwargs = {"transactions": df}
     return rule_gen, kwargs
 
@@ -126,7 +135,7 @@ def main():
     args = parse_args()
 
     if args.backend == RunnerType.DATAFRAME:
-        rule_gen, kwargs = prepare_df_gen(args.file, args.itemset_measures, args.rule_measures)
+        rule_gen, kwargs = prepare_df_gen(args.file, args.itemset_measures, args.rule_measures, verbose=args.verbose)
     elif args.backend == RunnerType.LIST:
         rule_gen, kwargs = prepare_list_gen(args.file)
     else:

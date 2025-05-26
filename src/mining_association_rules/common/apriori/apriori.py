@@ -24,10 +24,13 @@ class RuleGenerator(metaclass=ABCMeta):
         itemset_measures: dict[type[Measure], float],
         rule_measures: dict[type[Measure], float],
         logger_class: type[Logger] = Logger,
+        *,
+        verbose: bool = False,
     ):
         self.start = time.perf_counter()
         self.itemset_measures = {measure(): threshold for measure, threshold in itemset_measures.items()}
         self.rule_measures = {measure(): threshold for measure, threshold in rule_measures.items()}
+        self.verbose = verbose
         self._runner = runner
         self._rules: list[AssociationRule] = []
         self._logger = logger_class(name="Rules")
@@ -72,6 +75,8 @@ class RuleGenerator(metaclass=ABCMeta):
     def __exit__(self, exc_type, exc_val, exc_tb):
         log_info = {"runner": self._runner, "duration": self.total_duration}
         self._logger.info("Rules generated using %(runner)s database in %(duration)s seconds", log_info)
+        if not self.verbose:
+            return
         for itemset_measure in self.itemset_measures:
             itemset_measure_name = type(itemset_measure).__name__
             itemset_measure_count = itemset_measure.calculations_count

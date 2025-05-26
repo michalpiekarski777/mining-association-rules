@@ -19,6 +19,8 @@ class DataFrameRuleGenerator(RuleGenerator):
         self,
         itemset_measures: dict[type[Measure], float],
         rule_measures: dict[type[Measure], float],
+        *,
+        verbose: bool = False,
     ):
         self.supports: dict[frozenset[str], float] = {}
         self.support_counts: dict[frozenset[str], float] = {}
@@ -26,6 +28,7 @@ class DataFrameRuleGenerator(RuleGenerator):
             runner="df",
             itemset_measures=itemset_measures,
             rule_measures=rule_measures,
+            verbose=verbose,
         )
 
     def truncate_infrequent(self, df: pd.DataFrame, minsup: float) -> pd.DataFrame:

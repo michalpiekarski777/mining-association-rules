@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class ListRuleGenerator(RuleGenerator):
-    def __init__(self, source: str):
-        super().__init__(runner="list", source=source)
+    def __init__(self, source: str, *, verbose: bool = False):
+        super().__init__(runner="list", source=source, verbose=verbose)
 
     def support(self, itemset: set, transactions: list[set]) -> float:
         if not transactions:
