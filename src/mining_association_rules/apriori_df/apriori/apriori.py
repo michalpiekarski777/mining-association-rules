@@ -1,5 +1,6 @@
 import logging
 import time
+from typing import cast
 
 import pandas as pd
 
@@ -7,6 +8,7 @@ from src.mining_association_rules.apriori_df.interest_measures.base import Measu
 from src.mining_association_rules.common.apriori.apriori import RuleGenerator
 from src.mining_association_rules.common.utils.exceptions import EmptyTransactionBaseError
 from src.mining_association_rules.common.utils.typed_dicts import AssociationRule
+from src.mining_association_rules.common.utils.typed_dicts import MeasureTypedDict
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -27,11 +29,11 @@ class DataFrameRuleGenerator(RuleGenerator):
         )
 
     def truncate_infrequent(self, df: pd.DataFrame, minsup: float) -> pd.DataFrame:
-        """According to the Apriori rule we can remove columns that represent infrequent itemsets of length 1"""
+        """According to the Apriori rule, we can remove columns that represent infrequent itemsets of length 1"""
         if df.empty is True:
             raise EmptyTransactionBaseError
 
-        return df.loc[:, (df.sum() / len(df)) > minsup]
+        return df.loc[:, (df.sum() / len(df)) >= minsup]
 
     def generate_strong_association_rules(
         self,
@@ -57,10 +59,9 @@ class DataFrameRuleGenerator(RuleGenerator):
 
     def find_frequent_itemsets(self, df: pd.DataFrame) -> list[frozenset[str]]:
         """
-        Finds all subsets of elements_universe that meet support threshold
+        Finds all subsets of elements universe that meet itemset measures thresholds
         :param df: transaction database
-        :param minsup: minimum support threshold
-        :return: list of subsets of elements universe that meet support threshold
+        :return: list of subsets of elements universe that meet itemset measures thresholds
         """
         minsup = next(iter(self.itemset_measures.values()))
         frequent_itemsets = []
@@ -70,7 +71,7 @@ class DataFrameRuleGenerator(RuleGenerator):
         for _ in range(2, len(df.columns)):
             candidates = self._apriori_gen(itemsets)
             supports = next(iter(self.itemset_measures)).calculate(candidates, df, minsup)
-            itemsets = [c for c, s in zip(candidates, supports, strict=False) if s > minsup]
+            itemsets = [c for c, s in zip(candidates, supports, strict=False) if s >= minsup]
             frequent_itemsets.extend(itemsets)
             if not itemsets:
                 break
@@ -83,13 +84,13 @@ class DataFrameRuleGenerator(RuleGenerator):
         df: pd.DataFrame,
     ) -> list[AssociationRule]:
         """
-        :param frequent_itemsets: list of frozensets containing frequent itemsets
+        :param frequent_itemsets: list of sets containing frequent itemsets
         :param df: transaction database
         :return: association rules with metrics data
         """
         rule_candidates = [
             {
-                "antecedent": subset,
+                "antecedent": frozenset(subset),
                 "consequent": itemset - frozenset(subset),
                 "itemset": itemset,
             }
@@ -107,18 +108,20 @@ class DataFrameRuleGenerator(RuleGenerator):
                     threshold_meeting_measures[measure] = value
 
             if len(threshold_meeting_measures) == len(self.rule_measures):
+                itemset_measure: MeasureTypedDict = {
+                    "name": type(next(iter(self.itemset_measures.keys()))).__name__,
+                    "value": round(support, 3),
+                }
+                rule_measures = [
+                    cast(MeasureTypedDict, {"name": type(name).__name__, "value": value})
+                    for name, value in threshold_meeting_measures.items()
+                ]
                 self._rules.append(
                     {
                         "antecedent": candidate["antecedent"],
                         "consequent": candidate["consequent"],
-                        "itemset_measure": {
-                            "name": type(next(iter(self.itemset_measures.keys()))).__name__,
-                            "value": round(support, 3),
-                        },
-                        "rule_measures": [
-                            {"name": type(name).__name__, "value": value}
-                            for name, value in threshold_meeting_measures.items()
-                        ],
+                        "itemset_measure": itemset_measure,
+                        "rule_measures": rule_measures,
                     },
                 )
 

@@ -1,7 +1,5 @@
 from typing import TypedDict
 
-from src.mining_association_rules.apriori_df.interest_measures.base import Measure
-
 
 class MeasureTypedDict(TypedDict):
     name: str
@@ -11,5 +9,5 @@ class MeasureTypedDict(TypedDict):
 class AssociationRule(TypedDict):
     antecedent: frozenset[str]
     consequent: frozenset[str]
-    itemset_measure: Measure
+    itemset_measure: MeasureTypedDict
     rule_measures: list[MeasureTypedDict]
