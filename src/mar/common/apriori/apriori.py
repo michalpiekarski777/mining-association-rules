@@ -6,13 +6,15 @@ from abc import abstractmethod
 from itertools import chain
 from itertools import combinations
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from config import ROOT_DIR
-from src.mar.apriori_df.interest_measures import *  # noqa: F403
-from src.mar.apriori_df.interest_measures.base import Measure
 from src.mar.common.utils.encoders import JSONEncoder
 from src.mar.common.utils.loggers import Logger
 from src.mar.common.utils.typed_dicts import AssociationRule
+
+if TYPE_CHECKING:
+    from src.mar.apriori_df.interest_measures.base import Measure
 
 
 class RuleGenerator(metaclass=ABCMeta):
@@ -21,8 +23,8 @@ class RuleGenerator(metaclass=ABCMeta):
     def __init__(
         self,
         runner: str,
-        itemset_measures: dict[type[Measure], float],
-        rule_measures: dict[type[Measure], float],
+        itemset_measures: dict[type["Measure"], float],
+        rule_measures: dict[type["Measure"], float],
         logger_class: type[Logger] = Logger,
         *,
         verbose: bool = False,

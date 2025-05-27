@@ -1,9 +1,10 @@
-import time
-
+import numpy as np
 import pandas as pd
 
 from src.mar.apriori_df.interest_measures.base import Measure
 from src.mar.apriori_df.interest_measures.support import Support
+from src.mar.common.utils import consts
+from src.mar.common.utils.typed_dicts import RuleCandidate
 
 
 class Confidence(Measure):
@@ -11,12 +12,22 @@ class Confidence(Measure):
         self._support = Support()
         super().__init__()
 
-    def calculate(self, antecedent: frozenset[str], consequent: frozenset[str], df: pd.DataFrame) -> float:
-        start = time.perf_counter()
-        rule_support = self._support.calculate(antecedent | consequent, df)
-        antecedent_support = self._support.calculate(antecedent, df)
-        confidence = rule_support / antecedent_support
-        self.calculations_time += time.perf_counter() - start
-        self.calculations_count += 1
+    def calculate(
+        self,
+        rule_candidates: list[RuleCandidate],
+        df: pd.DataFrame,
+        minsup: float = consts.SUPPORT_THRESHOLD,
+    ) -> np.ndarray:
+        antecedent_supports = self._support.calculate(
+            [c["antecedent"] for c in rule_candidates],
+            df,
+            minsup,
+        )
+        itemset_supports = self._support.calculate(
+            [c["itemset"] for c in rule_candidates],
+            df,
+            minsup,
+        )
 
-        return confidence
+        with np.errstate(divide="ignore", invalid="ignore"):
+            return np.divide(itemset_supports, antecedent_supports)
