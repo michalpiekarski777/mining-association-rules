@@ -3,6 +3,7 @@ from src.mar.apriori_df.interest_measures import BatchConfidence
 from src.mar.apriori_df.interest_measures import BatchConviction
 from src.mar.apriori_df.interest_measures import BatchDependencyFactor
 from src.mar.apriori_df.interest_measures import BatchGainFunction
+from src.mar.apriori_df.interest_measures import BatchHyperConfidence
 from src.mar.apriori_df.interest_measures import BatchSupport
 from src.mar.apriori_df.interest_measures import Confidence
 from src.mar.apriori_df.interest_measures import Conviction
@@ -22,6 +23,7 @@ rule_measures_classes = {
     "batch_conviction": BatchConviction,
     "batch_dependency_factor": BatchDependencyFactor,
     "batch_gain_function": BatchGainFunction,
+    "batch_hyperconfidence": BatchHyperConfidence,
     "confidence": Confidence,
     "conviction": Conviction,
     "dependency_factor": DependencyFactor,
