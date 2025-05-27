@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "hatchling"
+    "hatchling", "hatch-requirements-txt"
 ]
 build-backend = "hatchling.build"
 
@@ -28,12 +28,14 @@ Issues = "https://github.com/michalpiekarski777/mining-association-rules/issues"
 [tool.hatch.build.targets.wheel]
 packages = ["src/mar"]
 
-[tool.hatch.dynamic]
-dependencies = {file = ["requirements/base.txt"]}
-optional-dependencies = {dev = { file = ["requirements-dev.txt"] }}
-
 [tool.hatch.metadata]
 allow-direct-references = true
+
+[tool.hatch.metadata.hooks.requirements_txt]
+files = ["requirements/base.txt"]
+
+[tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
+dev = ["requirements/local.txt"]
 
 [tool.mypy]
 warn_unused_ignores = true
