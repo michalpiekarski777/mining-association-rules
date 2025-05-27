@@ -5,6 +5,6 @@
   },
   "rule_measures": {
     "batch_confidence": 0.3,
-    "batch_hyperlift": 0
+    "batch_rule_interest_function": 0
   }
 }

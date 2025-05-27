@@ -5,6 +5,7 @@ from .batch_dependency_factor import BatchDependencyFactor
 from .batch_gain_function import BatchGainFunction
 from .batch_hyper_confidence import BatchHyperConfidence
 from .batch_hyper_lift import BatchHyperLift
+from .batch_rule_interest_function import BatchRuleInterestFunction
 from .batch_support import BatchSupport
 from .confidence import Confidence
 from .conviction import Conviction
@@ -25,6 +26,7 @@ __all__ = [
     "BatchGainFunction",
     "BatchHyperConfidence",
     "BatchHyperLift",
+    "BatchRuleInterestFunction",
     "BatchSupport",
     "Confidence",
     "Conviction",
