@@ -4,6 +4,7 @@
     "batch_support": 0.4
   },
   "rule_measures": {
-    "batch_confidence": 0.3
+    "batch_confidence": 0.3,
+    "batch_conviction": 0.3
   }
 }

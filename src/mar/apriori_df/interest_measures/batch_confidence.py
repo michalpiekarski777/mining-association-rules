@@ -4,6 +4,7 @@ import pandas as pd
 from src.mar.apriori_df.interest_measures.base import Measure
 from src.mar.apriori_df.interest_measures.batch_support import BatchSupport
 from src.mar.common.utils import consts
+from src.mar.common.utils.typed_dicts import RuleCandidate
 
 
 class BatchConfidence(Measure):
@@ -13,10 +14,10 @@ class BatchConfidence(Measure):
 
     def calculate(
         self,
-        rule_candidates,
+        rule_candidates: list[RuleCandidate],
         df: pd.DataFrame,
         minsup: float = consts.SUPPORT_THRESHOLD,
-    ) -> list[frozenset[str]]:
+    ) -> np.ndarray:
         antecedent_supports = self._batch_support.calculate(
             [c["antecedent"] for c in rule_candidates],
             df,
