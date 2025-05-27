@@ -25,9 +25,15 @@ Homepage = "https://github.com/michalpiekarski777/mining-association-rules"
 Repository = "https://github.com/michalpiekarski777/mining-association-rules.git"
 Issues = "https://github.com/michalpiekarski777/mining-association-rules/issues"
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/mar"]
+
 [tool.hatch.dynamic]
 dependencies = {file = ["requirements/base.txt"]}
 optional-dependencies = {dev = { file = ["requirements-dev.txt"] }}
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.mypy]
 warn_unused_ignores = true
