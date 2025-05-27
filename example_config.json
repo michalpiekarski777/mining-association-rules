@@ -1,10 +1,17 @@
 {
   "file": "survey.parquet",
   "itemset_measures": {
-    "batch_support": 0.4
+    "support": 0.6
   },
   "rule_measures": {
-    "batch_confidence": 0.3,
-    "batch_anti_support": 0
+    "confidence": 0.3,
+    "anti_support": 0,
+    "conviction": 0,
+    "dependency_factor": 0,
+    "gain_function": 0,
+    "hyperconfidence": 0,
+    "hyperlift": 0,
+    "lift": 0,
+    "rule_interest_function": 0
   }
 }

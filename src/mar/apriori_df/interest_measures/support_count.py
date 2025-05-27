@@ -1,25 +1,28 @@
+import time
+
+import numpy as np
 import pandas as pd
 
 from src.mar.apriori_df.interest_measures.base import Measure
-from src.mar.common.utils.exceptions import EmptyTransactionBaseError
+from src.mar.common.utils import consts
 
 
 class SupportCount(Measure):
     def __init__(self):
         super().__init__()
 
-    def calculate(self, itemset: frozenset[str], df: pd.DataFrame) -> float:
-        if itemset in self.history:
-            return self.history[itemset]
+    def calculate(
+        self,
+        itemsets: list[frozenset[str]],
+        df: pd.DataFrame,
+        minsup: float = consts.SUPPORT_THRESHOLD,
+    ) -> np.ndarray:
+        start = time.perf_counter()
+        item_to_idx = {item: idx for idx, item in enumerate(df.columns)}
+        candidate_indices = [np.array([item_to_idx[item] for item in c]) for c in itemsets]
+        data = df.to_numpy().astype(bool)
+        supports = np.array([data[:, cols].all(axis=1).sum() for cols in candidate_indices])
+        self.calculations_time += time.perf_counter() - start
+        self.calculations_count += 1
 
-        if df.empty is True:
-            raise EmptyTransactionBaseError
-
-        if len(itemset) > 1:
-            support_count = df[list(itemset)].eq(1).all(axis=1).value_counts().get(True, 0)
-        else:
-            support_count = df[next(iter(itemset))].value_counts().loc[1]
-
-        self.history[itemset] = support_count
-
-        return support_count
+        return supports
