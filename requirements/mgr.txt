@@ -1,7 +1,0 @@
--r base.txt
-
-jupyterlab==4.4.2
-efficient-apriori==2.0.6
-apyori==1.1.2
-orange3-associate==1.3.0
-mlxtend==0.23.4
