@@ -5,6 +5,7 @@ from src.mar.apriori_df.interest_measures import BatchDependencyFactor
 from src.mar.apriori_df.interest_measures import BatchGainFunction
 from src.mar.apriori_df.interest_measures import BatchHyperConfidence
 from src.mar.apriori_df.interest_measures import BatchHyperLift
+from src.mar.apriori_df.interest_measures import BatchLift
 from src.mar.apriori_df.interest_measures import BatchRuleInterestFunction
 from src.mar.apriori_df.interest_measures import BatchSupport
 from src.mar.apriori_df.interest_measures import Confidence
@@ -27,6 +28,7 @@ rule_measures_classes = {
     "batch_gain_function": BatchGainFunction,
     "batch_hyperconfidence": BatchHyperConfidence,
     "batch_hyperlift": BatchHyperLift,
+    "batch_lift": BatchLift,
     "batch_rule_interest_function": BatchRuleInterestFunction,
     "confidence": Confidence,
     "conviction": Conviction,
