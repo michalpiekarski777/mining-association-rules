@@ -2,16 +2,14 @@ import numpy as np
 import pandas as pd
 
 from src.mar.apriori_df.interest_measures.base import Measure
-from src.mar.apriori_df.interest_measures.batch_confidence import BatchConfidence
-from src.mar.apriori_df.interest_measures.batch_support import BatchSupport
+from src.mar.apriori_df.interest_measures.batch_support_count import BatchSupportCount
 from src.mar.common.utils import consts
 from src.mar.common.utils.typed_dicts import RuleCandidate
 
 
-class BatchConviction(Measure):
+class BatchDependencyFactor(Measure):
     def __init__(self):
-        self._support = BatchSupport()
-        self._confidence = BatchConfidence()
+        self._support = BatchSupportCount()
         super().__init__()
 
     def calculate(
@@ -20,14 +18,24 @@ class BatchConviction(Measure):
         df: pd.DataFrame,
         minsup: float = consts.SUPPORT_THRESHOLD,
     ) -> np.ndarray:
+        antecedent_supports = self._support.calculate(
+            [c["antecedent"] for c in rule_candidates],
+            df,
+            minsup,
+        )
         consequent_supports = self._support.calculate(
             [c["consequent"] for c in rule_candidates],
             df,
             minsup,
         )
-        rule_confidences = self._confidence.calculate(rule_candidates, df, minsup)
+        itemset_supports = self._support.calculate(
+            [c["itemset"] for c in rule_candidates],
+            df,
+            minsup,
+        )
 
         with np.errstate(divide="ignore", invalid="ignore"):
-            numerator = 1 - consequent_supports
-            denominator = 1 - rule_confidences
+            numerator = (itemset_supports / antecedent_supports) - (consequent_supports / len(df))
+            denominator = (itemset_supports / antecedent_supports) + (consequent_supports / len(df))
+
             return np.divide(numerator, denominator)

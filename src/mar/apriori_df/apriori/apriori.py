@@ -1,10 +1,10 @@
 import logging
 import time
+from typing import TYPE_CHECKING
 from typing import cast
 
 import pandas as pd
 
-from src.mar.apriori_df.interest_measures.base import Measure
 from src.mar.common.apriori.apriori import RuleGenerator
 from src.mar.common.utils.exceptions import EmptyTransactionBaseError
 from src.mar.common.utils.typed_dicts import AssociationRule
@@ -14,12 +14,15 @@ from src.mar.common.utils.typed_dicts import RuleCandidate
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from src.mar.apriori_df.interest_measures.base import Measure
+
 
 class DataFrameRuleGenerator(RuleGenerator):
     def __init__(
         self,
-        itemset_measures: dict[type[Measure], float],
-        rule_measures: dict[type[Measure], float],
+        itemset_measures: dict[type["Measure"], float],
+        rule_measures: dict[type["Measure"], float],
         *,
         verbose: bool = False,
     ):

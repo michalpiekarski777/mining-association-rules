@@ -1,13 +1,11 @@
-import time
-
 import numpy as np
 import pandas as pd
 
-from src.mar.apriori_df.interest_measures.base import Measure
+from src.mar.apriori_df.interest_measures.batch_support_count import BatchSupportCount
 from src.mar.common.utils import consts
 
 
-class BatchSupport(Measure):
+class BatchSupport(BatchSupportCount):
     def __init__(self):
         super().__init__()
 
@@ -17,12 +15,4 @@ class BatchSupport(Measure):
         df: pd.DataFrame,
         minsup: float = consts.SUPPORT_THRESHOLD,
     ) -> np.ndarray:
-        start = time.perf_counter()
-        item_to_idx = {item: idx for idx, item in enumerate(df.columns)}
-        candidate_indices = [np.array([item_to_idx[item] for item in c]) for c in itemsets]
-        data = df.to_numpy().astype(bool)
-        supports = np.array([data[:, cols].all(axis=1).sum() for cols in candidate_indices])
-        self.calculations_time += time.perf_counter() - start
-        self.calculations_count += 1
-
-        return supports / len(df)
+        return super().calculate(itemsets, df, minsup) / len(df)
