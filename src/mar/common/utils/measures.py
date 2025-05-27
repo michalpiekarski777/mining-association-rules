@@ -1,4 +1,5 @@
 from src.mar.apriori_df.interest_measures import AntiSupport
+from src.mar.apriori_df.interest_measures import BatchAntiSupport
 from src.mar.apriori_df.interest_measures import BatchConfidence
 from src.mar.apriori_df.interest_measures import BatchConviction
 from src.mar.apriori_df.interest_measures import BatchDependencyFactor
@@ -22,6 +23,7 @@ interest_measures_classes = {"batch_support": BatchSupport, "support": Support}
 
 rule_measures_classes = {
     "anti_support": AntiSupport,
+    "batch_anti_support": BatchAntiSupport,
     "batch_confidence": BatchConfidence,
     "batch_conviction": BatchConviction,
     "batch_dependency_factor": BatchDependencyFactor,
